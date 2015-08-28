@@ -1,7 +1,11 @@
 package com.cyngn.exovert;
 
 
-import com.cyngn.exovert.generate.UDTGenerator;
+import com.cyngn.exovert.generate.entity.TableGenerator;
+import com.cyngn.exovert.generate.entity.UDTGenerator;
+import com.cyngn.exovert.util.MetaData;
+import com.cyngn.exovert.util.Udt;
+import com.cyngn.exovert.util.VertxRef;
 import com.cyngn.vertx.async.Action;
 import com.cyngn.vertx.async.promise.Promise;
 import com.datastax.driver.core.Cluster;
@@ -69,13 +73,24 @@ public class Runner {
     private void preview() {
         String keySpace = keyspace.value(optionSet);
         String nameSpace = namespace.value(optionSet) + ".generated" ;
+        String outDir = out.value(optionSet);
 
         KeyspaceMetadata ksm = session.getCluster().getMetadata().getKeyspace(keySpace);
 
+        Udt.instance.init(ksm);
+        MetaData.instance.init(nameSpace, keySpace, outDir);
+        VertxRef.instance.init(vertx);
+
         try {
-            UDTGenerator.generate("", nameSpace, ksm.getUserTypes());
+            UDTGenerator.generate(nameSpace, ksm.getUserTypes());
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        try {
+            TableGenerator.generate(nameSpace, ksm.getTables());
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
