@@ -1,6 +1,7 @@
 package com.cyngn.exovert.util;
 
 import com.squareup.javapoet.JavaFile;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import org.apache.commons.lang.StringUtils;
 
@@ -12,7 +13,22 @@ import java.io.IOException;
 public class Disk {
     public static void outputFile(JavaFile file) throws IOException {
         if (!isPreview()) {
-            VertxRef.instance.get().fileSystem().writeFile(MetaData.instance.getOutDir() + "/" + file.packageName + "/" + file.typeSpec.name, Buffer.buffer(file.toString()), Void -> {});
+            Vertx vertx = VertxRef.instance.get();
+
+            String path = MetaData.instance.getOutDir() + "/" + StringUtils.replace(file.packageName, ".", "/");
+            String fileName = path + "/" + file.typeSpec.name + ".java";
+
+            if(!vertx.fileSystem().existsBlocking(path)) {
+                vertx.fileSystem().mkdirsBlocking(path);
+            }
+
+            System.out.println("Outputting file to path: " + fileName);
+
+            VertxRef.instance.get().fileSystem().writeFile(fileName, Buffer.buffer(file.toString()), result -> {
+                if(result.failed()) {
+                    System.out.println("Failed to create file: " + path + ", ex: " + result.cause());
+                }
+            });
         } else {
             file.writeTo(System.out);
         }
