@@ -1,6 +1,7 @@
 package com.cyngn.exovert.generate.entity;
 
 import com.cyngn.exovert.util.Disk;
+import com.cyngn.exovert.util.MetaData;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.mapping.annotations.UDT;
@@ -14,14 +15,20 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * Creates UDT classes based on
+ * Creates Udt classes based on the cassandra schema.
  *
  * @author truelove@cyngn.com (Jeremy Truelove) 8/27/15
  */
 public class UDTGenerator {
 
-    public static void generate(String namespace, Collection<UserType> userTypes) throws IOException {
-        String namespaceToUse = namespace + ".storage.udt";
+    /**
+     * Kicks off table generation.
+     *
+     * @param userTypes the cassandra Udt meta data
+     * @throws IOException
+     */
+    public static void generate(Collection<UserType> userTypes) throws IOException {
+        String namespaceToUse = MetaData.instance.getUdtNampspace();
 
         for (UserType userType : userTypes) {
             String rawName = userType.getTypeName();
@@ -43,6 +50,9 @@ public class UDTGenerator {
         }
     }
 
+    /**
+     * Add fields to the class spec.
+     */
     private static void addFields(TypeSpec.Builder builder, UserType userType) {
         for (String field : userType.getFieldNames()) {
             DataType type = userType.getFieldType(field);
@@ -52,6 +62,9 @@ public class UDTGenerator {
         }
     }
 
+    /**
+     * Add UDT annotation to class.
+     */
     private static AnnotationSpec getUDTAnnotation(String keyspace, String udtName) {
         return AnnotationSpec.builder(UDT.class).addMember("keyspace", "$S", keyspace).addMember("name", "$S", udtName).build();
     }

@@ -1,6 +1,7 @@
 package com.cyngn.exovert.generate.entity;
 
 import com.cyngn.exovert.util.Disk;
+import com.cyngn.exovert.util.MetaData;
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.TableMetadata;
@@ -15,14 +16,20 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * Creates UDT classes based on
+ * Creates Table classes based on the cassandra schema.
  *
  * @author truelove@cyngn.com (Jeremy Truelove) 8/27/15
  */
 public class TableGenerator {
 
-    public static void generate(String namespace, Collection<TableMetadata> tables) throws IOException {
-        String namespaceToUse = namespace + ".storage.table";
+    /**
+     * Kicks off table generation.
+     *
+     * @param tables the cassandra table meta data
+     * @throws IOException
+     */
+    public static void generate(Collection<TableMetadata> tables) throws IOException {
+        String namespaceToUse = MetaData.instance.getTableNampspace();
 
         for (TableMetadata table : tables) {
             String rawName = table.getName();
@@ -44,6 +51,9 @@ public class TableGenerator {
         }
     }
 
+    /**
+     * Add fields to the class spec.
+     */
     private static void addFields(TypeSpec.Builder builder, TableMetadata tableMetadata) {
         for (ColumnMetadata column : tableMetadata.getColumns()) {
             DataType type = column.getType();
@@ -55,7 +65,11 @@ public class TableGenerator {
         }
     }
 
+    /**
+     * Add Table annotation to class.
+     */
     private static AnnotationSpec getTableAnnotation(String keyspace, String name) {
-        return AnnotationSpec.builder(Table.class).addMember("keyspace", "$S", keyspace).addMember("name", "$S", name).build();
+        return AnnotationSpec.builder(Table.class).addMember("keyspace", "$S", keyspace)
+                .addMember("name", "$S", name).build();
     }
 }

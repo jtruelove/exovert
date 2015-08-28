@@ -5,6 +5,8 @@ import io.vertx.core.Vertx;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * Util to get access to the current vert.x context.
+ *
  * @author truelove@cyngn.com (Jeremy Truelove) 8/28/15
  */
 public class VertxRef {

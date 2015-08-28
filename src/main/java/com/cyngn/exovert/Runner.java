@@ -28,6 +28,8 @@ import java.util.function.Consumer;
 import static java.util.Arrays.asList;
 
 /**
+ * Runs the generation tool.
+ *
  * @author truelove@cyngn.com (Jeremy Truelove) 5/15/15
  */
 public class Runner {
@@ -67,33 +69,41 @@ public class Runner {
     }
 
     private void create() {
-
+        init(false);
+        execute(session.getCluster().getMetadata().getKeyspace(MetaData.instance.getKeyspace()));
     }
 
     private void preview() {
-        String keySpace = keyspace.value(optionSet);
-        String nameSpace = namespace.value(optionSet) + ".generated" ;
-        String outDir = out.value(optionSet);
+        init(true);
+        execute(session.getCluster().getMetadata().getKeyspace(MetaData.instance.getKeyspace()));
+    }
 
-        KeyspaceMetadata ksm = session.getCluster().getMetadata().getKeyspace(keySpace);
-
-        Udt.instance.init(ksm);
-        MetaData.instance.init(nameSpace, keySpace, outDir);
-        VertxRef.instance.init(vertx);
-
+    private void execute(KeyspaceMetadata ksm) {
         try {
-            UDTGenerator.generate(nameSpace, ksm.getUserTypes());
+            UDTGenerator.generate(ksm.getUserTypes());
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-            TableGenerator.generate(nameSpace, ksm.getTables());
+            TableGenerator.generate(ksm.getTables());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
+    private void init(boolean isPreview) {
+        String outDir = out.value(optionSet);
+        String keySpace = keyspace.value(optionSet);
+        String nameSpace = namespace.value(optionSet) + ".generated" ;
+
+        KeyspaceMetadata ksm = session.getCluster().getMetadata().getKeyspace(keySpace);
+
+        Udt.instance.init(ksm);
+        MetaData.instance.init(nameSpace, keySpace, !isPreview ? outDir : null);
+        VertxRef.instance.init(vertx);
+
+    }
 
     /**
      * Setup DB connections.

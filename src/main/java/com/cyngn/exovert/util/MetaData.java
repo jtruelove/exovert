@@ -9,6 +9,8 @@ import org.apache.commons.lang.StringUtils;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * Util class for getting access to common meta data at run time.
+ *
  * @author truelove@cyngn.com (Jeremy Truelove) 8/28/15
  */
 public class MetaData {

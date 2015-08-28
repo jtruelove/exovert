@@ -20,9 +20,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Shared functions for generating entity code.
+ *
  * @author truelove@cyngn.com (Jeremy Truelove) 8/28/15
  */
 public class CommonGen {
+
+    /**
+     * Handle getting the class names for parameterized types.
+     *
+     * @param type the cassandra data type to extract from
+     * @return the parameterized type result
+     */
     public static TypeResult getClassWithTypes(DataType type) {
         ClassName outer = ClassName.get(type.asJavaClass());
 
@@ -41,6 +50,13 @@ public class CommonGen {
         return new TypeResult(ParameterizedTypeName.get(outer, generics.toArray(new TypeName[generics.size()])), hasFrozenType);
     }
 
+    /**
+     * Get a setter spec for a entity field.
+     *
+     * @param field the field name
+     * @param type the cassandra field type
+     * @return the setter method spec
+     */
     public static MethodSpec getSetter(String field, DataType type) {
         String methodRoot = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, field);
         String paramName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, field);
@@ -61,6 +77,13 @@ public class CommonGen {
         return spec.build();
     }
 
+    /**
+     * Get a getter spec for a entity field.
+     *
+     * @param field the field name
+     * @param type the cassandra field type
+     * @return the getter method spec
+     */
     public static MethodSpec getGetter(String field, DataType type) {
         String methodRoot = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, field);
         String paramName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, field);
@@ -81,6 +104,14 @@ public class CommonGen {
         return spec.build();
     }
 
+    /**
+     * Get a FieldSpec for an entity field.
+     *
+     * @param field the field name
+     * @param type the field type
+     * @param isUdtClass is this a UDT entity?
+     * @return the FieldSpec representing the cassandra field
+     */
     public static FieldSpec getFieldSpec(String field, DataType type, boolean isUdtClass) {
         String fieldName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, field);
         FieldSpec.Builder spec;
@@ -106,6 +137,11 @@ public class CommonGen {
         return spec.build();
     }
 
+    /**
+     * Get the Column annotation for a table field.
+     * @param field the field name to put the annotation on
+     * @return the annotation
+     */
     public static AnnotationSpec getColumnAnnotation(String field) {
         AnnotationSpec.Builder builder = AnnotationSpec.builder(Column.class);
         if(MetaData.isSnakeCase(field)) {
@@ -114,7 +150,11 @@ public class CommonGen {
         return builder.build();
     }
 
-
+    /**
+     * Get the Field annotation for a UDT field.
+     * @param field the field name to put the annotation on
+     * @return the annotation
+     */
     public static AnnotationSpec getFieldAnnotation(String field) {
         AnnotationSpec.Builder builder = AnnotationSpec.builder(Field.class);
         if(MetaData.isSnakeCase(field)) {
@@ -123,6 +163,10 @@ public class CommonGen {
         return builder.build();
     }
 
+    /**
+     * Get a FrozenValue annotation for a field.
+     * @return the annotation
+     */
     public static AnnotationSpec getFrozenAnnotation() {
         return AnnotationSpec.builder(FrozenValue.class).build();
     }
