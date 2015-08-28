@@ -1,0 +1,48 @@
+// Handles updating the 'version' field in the gradle.properties file
+task updateVersion <<  {
+    if (!project.hasProperty("newVersion")) {
+        throw new InvalidUserDataException("You must specify a 'newVersion' parameter with updateVersion task, " +
+                "ie -PnewVersion=1.0.9-foo")
+    }
+
+    println "updating version to " + newVersion
+    project.version = newVersion
+
+    ant.propertyfile(
+            file: "gradle.properties") {
+        entry( key: "version", value: project.version)
+    }
+}
+
+// Handles updating the 'version' field in the gradle.properties with a snapshot tag
+task makeSnapshot <<  {
+    if (project.version.contains("-SNAPSHOT")) {
+        println "project.version : " + project.version + " is already in snapshot form"
+        return
+    }
+    println "updating version to " + project.version + "-SNAPSHOT"
+
+    project.version = project.version + "-SNAPSHOT"
+    ant.propertyfile(
+            file: "gradle.properties") {
+        entry( key: "version", value: project.version)
+    }
+}
+
+// commit an updated
+task commitNewVersion << {
+    if (!project.hasProperty("commitBranch")) {
+        throw new InvalidUserDataException("You must specify a 'commitBranch' parameter with commitNewVersion task, " +
+                "ie -PcommitBranch=master")
+    }
+
+    exec {
+        commandLine 'git', 'add', 'gradle.properties'
+    }
+    exec {
+        commandLine 'git', 'commit', '-m', 'Teamcity updating to version: ' + project.version
+    }
+    exec {
+        commandLine 'git', 'push', 'gerrit', commitBranch
+    }
+}
