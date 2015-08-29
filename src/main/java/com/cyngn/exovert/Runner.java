@@ -114,8 +114,6 @@ public class Runner {
         JsonObject config = new JsonObject()
             .put("seeds", new JsonArray(Arrays.asList(dbHost)))
             .put("query", new JsonObject().put("consistency", "LOCAL_QUORUM"))
-           // .put("policies", new JsonObject().put("load_balancing",
-             //       new JsonObject().put("name", "DCAwareRoundRobinPolicy").put("local_dc", "sjc")))
             .put("reconnect", new JsonObject().put("name", "exponential").put("base_delay", 1000).put("max_delay", 1000));
 
         System.out.println("Cassandra config to use:" + config.encode());
@@ -131,15 +129,15 @@ public class Runner {
      */
     private OptionParser getParser() {
         OptionParser parser = new OptionParser();
-        create = parser.acceptsAll(asList("create", "c"), "Create the basic service infrastructure");
-        preview = parser.acceptsAll(asList("preview", "p"), "Output what we map from the DB");
+        create = parser.acceptsAll(asList("create", "c"), "create the basic service infrastructure");
+        preview = parser.acceptsAll(asList("preview", "p"), "output all the java files to the console, don't create files");
         keyspace = parser.acceptsAll(asList("keyspace", "k"), "the keyspace to read from").requiredIf(create, preview)
                 .withRequiredArg().ofType(String.class);
         namespace = parser.acceptsAll(asList("namespace", "n"), "the namespace to create java classes in").requiredIf(create, preview)
                 .withRequiredArg().ofType(String.class);
         db = parser.acceptsAll(asList("db", "d"), "the db host to connect to").requiredIf(create, preview)
                 .withRequiredArg().ofType(String.class);
-        out = parser.acceptsAll(asList("out", "o"), "the output dir to place files in").withRequiredArg().ofType(String.class);
+        out = parser.acceptsAll(asList("out", "o"), "the output dir to place files in").requiredIf(create).withRequiredArg().ofType(String.class);
         rest = parser.acceptsAll(asList("rest", "r"), "generate the REST API for the scheme");
         help = parser.accepts("help", "shows this message");
         return parser;

@@ -1,4 +1,12 @@
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.1.1'
+    }
+}
+
 apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 version = '0.1.0'
 group = "com.cyngn.vertx"
@@ -58,3 +66,9 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
+shadowJar {
+    classifier = 'fat'
+    manifest {
+        attributes 'Main-Class': 'com.cyngn.exovert.Runner'
+    }
+}
