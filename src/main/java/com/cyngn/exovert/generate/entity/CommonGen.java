@@ -4,9 +4,7 @@ import com.cyngn.exovert.util.MetaData;
 import com.cyngn.exovert.util.Udt;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.UserType;
-import com.datastax.driver.mapping.annotations.Column;
-import com.datastax.driver.mapping.annotations.Field;
-import com.datastax.driver.mapping.annotations.FrozenValue;
+import com.datastax.driver.mapping.annotations.*;
 import com.google.common.base.CaseFormat;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
@@ -113,6 +111,20 @@ public class CommonGen {
      * @return the FieldSpec representing the cassandra field
      */
     public static FieldSpec getFieldSpec(String field, DataType type, boolean isUdtClass) {
+       return getFieldSpec(field, type, isUdtClass, new ArrayList<>());
+    }
+
+    /**
+     * Get a FieldSpec for an entity field.
+     *
+     * @param field the field name
+     * @param type the field type
+     * @param isUdtClass is this a UDT entity?
+     * @param extraAnnotations additional annotations to put on the field
+     * @return the FieldSpec representing the cassandra field
+     */
+    public static FieldSpec getFieldSpec(String field, DataType type, boolean isUdtClass,
+                                         List<AnnotationSpec> extraAnnotations) {
         String fieldName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, field);
         FieldSpec.Builder spec;
 
@@ -133,6 +145,10 @@ public class CommonGen {
         if (isUdtClass) { spec.addAnnotation(getFieldAnnotation(field)); }
         else { spec.addAnnotation(getColumnAnnotation(field)); }
         spec.addAnnotation(MetaData.getJsonAnnotation(field));
+
+        for(AnnotationSpec annotationSpec : extraAnnotations) {
+            spec.addAnnotation(annotationSpec);
+        }
 
         return spec.build();
     }
@@ -169,5 +185,23 @@ public class CommonGen {
      */
     public static AnnotationSpec getFrozenAnnotation() {
         return AnnotationSpec.builder(FrozenValue.class).build();
+    }
+
+    /**
+     * Get the PartitionKey annotation for a Table field.
+     * @param position the order of the field in the partition key
+     * @return the annotation
+     */
+    public static AnnotationSpec getPartitionKeyAnnotation(int position) {
+        return AnnotationSpec.builder(PartitionKey.class).addMember("value", "$L", position).build();
+    }
+
+    /**
+     * Get the ClusteringColumn annotation for a Table field.
+     * @param position the order of the field in the partition key
+     * @return the annotation
+     */
+    public static AnnotationSpec getClusteringAnnotation(int position) {
+        return AnnotationSpec.builder(ClusteringColumn.class).addMember("value", "$L", position).build();
     }
 }

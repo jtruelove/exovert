@@ -13,7 +13,11 @@ import com.squareup.javapoet.TypeSpec;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Creates Table classes based on the cassandra schema.
@@ -55,14 +59,42 @@ public class TableGenerator {
      * Add fields to the class spec.
      */
     private static void addFields(TypeSpec.Builder builder, TableMetadata tableMetadata) {
+        Map<String, Integer> partitionKeys = getMapOfKeys(tableMetadata.getPartitionKey());
+        Map<String, Integer> clusteringKeys = getMapOfKeys(tableMetadata.getClusteringColumns());
+
         for (ColumnMetadata column : tableMetadata.getColumns()) {
             DataType type = column.getType();
             String fieldName = column.getName();
+            String name = column.getName();
 
-            builder.addField(CommonGen.getFieldSpec(fieldName, type, false));
+            List<AnnotationSpec> extraAnnotations = new ArrayList<>();
+            if(partitionKeys.containsKey(name)) {
+                extraAnnotations.add(CommonGen.getPartitionKeyAnnotation(partitionKeys.get(name)));
+            }
+
+            if(clusteringKeys.containsKey(name)) {
+                extraAnnotations.add(CommonGen.getClusteringAnnotation(clusteringKeys.get(name)));
+            }
+
+            builder.addField(CommonGen.getFieldSpec(fieldName, type, false, extraAnnotations));
             builder.addMethod(CommonGen.getSetter(fieldName, type));
             builder.addMethod(CommonGen.getGetter(fieldName, type));
         }
+    }
+
+    /**
+     * Map out the keys and their positions.
+     * @param keys the keys to map
+     * @return map of the keys at their position in the key chain
+     */
+    private static Map<String,Integer> getMapOfKeys(List<ColumnMetadata> keys) {
+        Map<String, Integer> partitionKeys = new HashMap<>();
+        int count = 0;
+        for(ColumnMetadata columnMetadata : keys) {
+            partitionKeys.put(columnMetadata.getName(), count);
+            count++;
+        }
+        return partitionKeys;
     }
 
     /**
