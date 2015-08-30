@@ -3,6 +3,7 @@ package com.cyngn.exovert;
 
 import com.cyngn.exovert.generate.entity.TableGenerator;
 import com.cyngn.exovert.generate.entity.UDTGenerator;
+import com.cyngn.exovert.generate.storage.DalGenerator;
 import com.cyngn.exovert.util.MetaData;
 import com.cyngn.exovert.util.Udt;
 import com.cyngn.exovert.util.VertxRef;
@@ -79,17 +80,14 @@ public class Runner {
     }
 
     private void execute(KeyspaceMetadata ksm) {
-        try {
-            UDTGenerator.generate(ksm.getUserTypes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        try { UDTGenerator.generate(ksm.getUserTypes()); }
+        catch (IOException e) { e.printStackTrace(); }
 
-        try {
-            TableGenerator.generate(ksm.getTables());
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        try { TableGenerator.generate(ksm.getTables()); }
+        catch (IOException ex) { ex.printStackTrace(); }
+
+        try { DalGenerator.generate(ksm.getTables()); }
+        catch (IOException e) { e.printStackTrace(); }
     }
 
     private void init(boolean isPreview) {
@@ -102,7 +100,6 @@ public class Runner {
         Udt.instance.init(ksm);
         MetaData.instance.init(nameSpace, keySpace, !isPreview ? outDir : null);
         VertxRef.instance.init(vertx);
-
     }
 
     /**

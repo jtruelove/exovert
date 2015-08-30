@@ -35,14 +35,13 @@ public class MetaData {
     public String getNamespace() { return namespace; }
     public String getKeyspace() { return keyspace; }
     public String getOutDir() { return outDir; }
-    public String getUdtNampspace() {return StringUtils.join(new String[]{namespace, "storage", "udt"}, '.'); }
-    public String getTableNampspace() {return StringUtils.join(new String[]{namespace, "storage", "table"}, '.'); }
+    public String getUdtNamespace() {return StringUtils.join(new String[]{namespace, "storage", "udt"}, '.'); }
+    public String getTableNamespace() {return StringUtils.join(new String[]{namespace, "storage", "table"}, '.'); }
+    public String getDalNamespace() {return StringUtils.join(new String[]{namespace, "storage", "dal"}, '.'); }
 
     public static boolean isSnakeCase(String str) {
         return str.contains("_");
     }
-
-
 
     public static AnnotationSpec getJsonAnnotation(String field) {
         AnnotationSpec.Builder builder = AnnotationSpec.builder(JsonProperty.class);
@@ -54,6 +53,6 @@ public class MetaData {
     }
 
     public static ClassName getClassNameForUdt(UserType type) {
-        return ClassName.get(MetaData.instance.getUdtNampspace(), Udt.instance.getUdtClassName(type.getTypeName()));
+        return ClassName.get(MetaData.instance.getUdtNamespace(), Udt.instance.getUdtClassName(type.getTypeName()));
     }
 }

@@ -33,7 +33,7 @@ public class TableGenerator {
      * @throws IOException
      */
     public static void generate(Collection<TableMetadata> tables) throws IOException {
-        String namespaceToUse = MetaData.instance.getTableNampspace();
+        String namespaceToUse = MetaData.instance.getTableNamespace();
 
         for (TableMetadata table : tables) {
             String rawName = table.getName();
