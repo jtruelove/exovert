@@ -28,7 +28,7 @@ public class UDTGenerator {
      * @throws IOException
      */
     public static void generate(Collection<UserType> userTypes) throws IOException {
-        String namespaceToUse = MetaData.instance.getUdtNampspace();
+        String namespaceToUse = MetaData.instance.getUdtNamespace();
 
         for (UserType userType : userTypes) {
             String rawName = userType.getTypeName();
