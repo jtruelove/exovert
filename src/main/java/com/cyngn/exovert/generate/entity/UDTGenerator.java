@@ -12,7 +12,9 @@ import com.squareup.javapoet.TypeSpec;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Creates Udt classes based on the cassandra schema.
@@ -38,7 +40,7 @@ public class UDTGenerator {
                     .addModifiers(Modifier.PUBLIC)
                     .addAnnotation(getUDTAnnotation(userType.getKeyspace(), rawName));
 
-            addFields(udtClassBuilder, userType);
+            addFields(udtClassBuilder, userType, name);
 
             udtClassBuilder.addJavadoc("GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF\n"
                     + "\nUDT for Cassandra - " + rawName + "\n");
@@ -53,13 +55,19 @@ public class UDTGenerator {
     /**
      * Add fields to the class spec.
      */
-    private static void addFields(TypeSpec.Builder builder, UserType userType) {
+    private static void addFields(TypeSpec.Builder builder, UserType userType, String className) {
+
+        List<String> fields = new ArrayList<>();
         for (String field : userType.getFieldNames()) {
             DataType type = userType.getFieldType(field);
             builder.addField(CommonGen.getFieldSpec(field, type, true));
             builder.addMethod(CommonGen.getSetter(field, type));
             builder.addMethod(CommonGen.getGetter(field, type));
+
+            fields.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, field));
         }
+
+        builder.addMethod(CommonGen.getToString(fields, className));
     }
 
     /**

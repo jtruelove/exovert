@@ -204,4 +204,32 @@ public class CommonGen {
     public static AnnotationSpec getClusteringAnnotation(int position) {
         return AnnotationSpec.builder(ClusteringColumn.class).addMember("value", "$L", position).build();
     }
+
+    /**
+     * Given a list of class fields and the class name generate a 'toString' method.
+     * @param fields the class fields
+     * @param className the class name
+     * @return a new toString method
+     */
+    public static MethodSpec getToString(List<String> fields, String className) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("toString")
+                .addAnnotation(Override.class)
+                .returns(String.class)
+                .addModifiers(Modifier.PUBLIC);
+
+        builder.addCode("return $S $L\n", className + "{", "+");
+        boolean first = true;
+        for (String field : fields) {
+            String fieldStr = field + "=";
+            if(!first) {
+                fieldStr = ", " + fieldStr;
+            } else {
+                first = false;
+            }
+
+            builder.addCode("$S + $N +\n", fieldStr, field);
+        }
+        builder.addStatement("$S", "}");
+        return builder.build();
+    }
 }

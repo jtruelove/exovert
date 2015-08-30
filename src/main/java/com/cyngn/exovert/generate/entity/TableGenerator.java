@@ -43,7 +43,7 @@ public class TableGenerator {
                     .addModifiers(Modifier.PUBLIC)
                     .addAnnotation(getTableAnnotation(table.getKeyspace().getName(), rawName));
 
-            addFields(tableClassBuilder, table);
+            addFields(tableClassBuilder, table, name);
 
             tableClassBuilder.addJavadoc("GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF\n"
                     + "\nTable for Cassandra - " + rawName + "\n");
@@ -58,13 +58,13 @@ public class TableGenerator {
     /**
      * Add fields to the class spec.
      */
-    private static void addFields(TypeSpec.Builder builder, TableMetadata tableMetadata) {
+    private static void addFields(TypeSpec.Builder builder, TableMetadata tableMetadata, String className) {
         Map<String, Integer> partitionKeys = getMapOfKeys(tableMetadata.getPartitionKey());
         Map<String, Integer> clusteringKeys = getMapOfKeys(tableMetadata.getClusteringColumns());
 
+        List<String> fields = new ArrayList<>();
         for (ColumnMetadata column : tableMetadata.getColumns()) {
             DataType type = column.getType();
-            String fieldName = column.getName();
             String name = column.getName();
 
             List<AnnotationSpec> extraAnnotations = new ArrayList<>();
@@ -76,10 +76,13 @@ public class TableGenerator {
                 extraAnnotations.add(CommonGen.getClusteringAnnotation(clusteringKeys.get(name)));
             }
 
-            builder.addField(CommonGen.getFieldSpec(fieldName, type, false, extraAnnotations));
-            builder.addMethod(CommonGen.getSetter(fieldName, type));
-            builder.addMethod(CommonGen.getGetter(fieldName, type));
+            builder.addField(CommonGen.getFieldSpec(name, type, false, extraAnnotations));
+            builder.addMethod(CommonGen.getSetter(name, type));
+            builder.addMethod(CommonGen.getGetter(name, type));
+            fields.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name));
         }
+
+        builder.addMethod(CommonGen.getToString(fields, className));
     }
 
     /**
