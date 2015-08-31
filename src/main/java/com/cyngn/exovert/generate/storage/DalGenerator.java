@@ -26,8 +26,7 @@ import java.util.function.Consumer;
  */
 public class DalGenerator {
     /**
-     * Kicks off table generation.
-     *
+     * Kicks off DAL generation.
      * @param tables the cassandra table meta data
      * @throws IOException
      */
@@ -50,10 +49,11 @@ public class DalGenerator {
 
             dalBuilder.addMethod(getSave(entityTable));
             dalBuilder.addMethod(getDelete(entityTable));
+            dalBuilder.addMethod(getDeleteByKey(entityTable));
+            dalBuilder.addMethod(getEntityGet(entityTable));
 
             dalBuilder.addJavadoc("GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF\n"
                     + "\nDAL for Cassandra entity - " + rawName + "\n");
-
 
             dalBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(namespaceToUse, "CommonDal"), entityTable));
 
@@ -63,6 +63,11 @@ public class DalGenerator {
         }
     }
 
+    /**
+     * Create a general interface for all DALs to confirm to
+     * @param namespace the namespace to create the interface in
+     * @throws IOException
+     */
     private static void generateDalInterface(String namespace) throws IOException {
         TypeVariableName parameterizingType = TypeVariableName.get("T");
 
@@ -82,7 +87,7 @@ public class DalGenerator {
                         .varargs(true)
                         .addParameter(Object[].class, "primaryKeys")
                         .build())
-                        // get
+                // delete by key
                 .addMethod(MethodSpec.methodBuilder("delete")
                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                         .addParameter(getOnComplete(), "onComplete")
@@ -134,9 +139,44 @@ public class DalGenerator {
         return getEntitySaveOrDelete(tableEntity, "delete");
     }
 
+    private static MethodSpec getDeleteByKey(ClassName tableEntity) {
+        TypeName aVoid = ClassName.get(Void.class);
+
+        // setup the callback
+        TypeSpec resultCallback = TypeSpec.anonymousClassBuilder("")
+                .addSuperinterface(ParameterizedTypeName.get(ClassName.get(FutureCallback.class), aVoid))
+                .addMethod(MethodSpec.methodBuilder("onSuccess")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(aVoid, "result")
+                        .addStatement("$L.accept(true)", "onComplete")
+                        .build())
+                .addMethod(MethodSpec.methodBuilder("onFailure")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(Throwable.class, "error")
+                        .addStatement("logger.error(\"delete - {}, ex: \", $L, $L)", "primaryKey", "error")
+                        .addStatement("$L.accept(false)", "onComplete")
+                        .build())
+                .build();
+
+        return MethodSpec.methodBuilder("delete")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(getOnComplete(), "onComplete")
+                .addParameter(Object[].class, "primaryKey")
+                .varargs(true)
+                .addStatement("logger.info(\"delete - {}\", $L)", "primaryKey")
+                .addCode("\n")
+                .addCode("mapper.deleteAsync($L, $L", resultCallback, "primaryKey")
+                .addCode(");\n")
+                .addJavadoc("Delete a $L object by key.\n", tableEntity.simpleName())
+                .build();
+    }
+
     private static MethodSpec getEntitySaveOrDelete(ClassName tableEntity, String method) {
         String entityParamName = getEntityParam(tableEntity);
 
+        // setup the callback
         TypeSpec resultCallback = TypeSpec.anonymousClassBuilder("")
                 .addSuperinterface(ParameterizedTypeName.get(FutureCallback.class, Void.class))
                 .addMethod(MethodSpec.methodBuilder("onSuccess")
@@ -167,7 +207,40 @@ public class DalGenerator {
                 .build();
     }
 
+    private static MethodSpec getEntityGet(ClassName tableEntity) {
+        // setup the callback
+        TypeSpec resultCallback = TypeSpec.anonymousClassBuilder("")
+                .addSuperinterface(ParameterizedTypeName.get(ClassName.get(FutureCallback.class), tableEntity))
+                .addMethod(MethodSpec.methodBuilder("onSuccess")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(tableEntity, "result")
+                        .addStatement("$L.accept(true, result)", "onComplete")
+                        .build())
+                .addMethod(MethodSpec.methodBuilder("onFailure")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(Throwable.class, "error")
+                        .addStatement("logger.error(\"get - {}, ex: \", $L, $L)", "primaryKey", "error")
+                        .addStatement("$L.accept(false, null)", "onComplete")
+                        .build())
+                .build();
+
+        return MethodSpec.methodBuilder("get")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(getOnCompleteWithResult(tableEntity), "onComplete")
+                .addParameter(Object[].class, "primaryKey")
+                .varargs(true)
+                .addStatement("logger.info(\"get - {}\", $L)", "primaryKey")
+                .addCode("\n")
+                .addCode("mapper.getAsync($L, $L", resultCallback, "primaryKey")
+                .addCode(");\n")
+                .addJavadoc("Get a $L object by primary key.\n", tableEntity.simpleName())
+                .build();
+    }
+
     private static String getEntityParam(ClassName tableEntity) {
+        // rename so the variable doesn't collide with any key words
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, tableEntity.simpleName()) + "Obj";
     }
 

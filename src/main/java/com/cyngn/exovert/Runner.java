@@ -93,7 +93,7 @@ public class Runner {
     private void init(boolean isPreview) {
         String outDir = out.value(optionSet);
         String keySpace = keyspace.value(optionSet);
-        String nameSpace = namespace.value(optionSet) + ".generated" ;
+        String nameSpace = namespace.value(optionSet);
 
         KeyspaceMetadata ksm = session.getCluster().getMetadata().getKeyspace(keySpace);
 
