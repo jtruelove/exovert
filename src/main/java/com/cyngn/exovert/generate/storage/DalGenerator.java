@@ -8,6 +8,7 @@ import com.englishtown.vertx.cassandra.mapping.VertxMapper;
 import com.englishtown.vertx.cassandra.mapping.VertxMappingManager;
 import com.englishtown.vertx.cassandra.mapping.impl.DefaultVertxMappingManager;
 import com.google.common.base.CaseFormat;
+import com.google.common.util.concurrent.FutureCallback;
 import com.squareup.javapoet.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,27 +16,15 @@ import org.slf4j.LoggerFactory;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
+ * Handles generating a DAL for each Cassandra Table entity.
+ *
  * @author truelove@cyngn.com (Jeremy Truelove) 8/28/15
  */
 public class DalGenerator {
-
-
-    /*
-
-    private static final Logger logger = LoggerFactory.getLogger(ReportStorage.class);
-
-    private final CassandraSession session;
-    private final VertxMapper<MetricReport> mapper;
-
-    public ReportStorage(CassandraSession session) {
-        VertxMappingManager manager = new DefaultVertxMappingManager(session);
-        mapper = manager.mapper(MetricReport.class);
-        this.session = session;
-    }
-     */
-
     /**
      * Kicks off table generation.
      *
@@ -44,28 +33,74 @@ public class DalGenerator {
      */
     public static void generate(Collection<TableMetadata> tables) throws IOException {
         String namespaceToUse = MetaData.instance.getDalNamespace();
+        generateDalInterface(namespaceToUse);
 
         for (TableMetadata table : tables) {
             String rawName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, table.getName());
             String name = rawName + "Dal";
 
-            ClassName entiyTable = ClassName.get(MetaData.instance.getTableNamespace(), rawName);
+            ClassName entityTable = ClassName.get(MetaData.instance.getTableNamespace(), rawName);
 
             TypeSpec.Builder dalBuilder = TypeSpec.classBuilder(name)
                     .addModifiers(Modifier.PUBLIC);
 
             dalBuilder.addField(getLogger(namespaceToUse, name));
-            addCassandraObjects(entiyTable, dalBuilder);
-            dalBuilder.addMethod(getConstructor(entiyTable));
+            addCassandraObjects(entityTable, dalBuilder);
+            dalBuilder.addMethod(getConstructor(entityTable));
+
+            dalBuilder.addMethod(getSave(entityTable));
+            dalBuilder.addMethod(getDelete(entityTable));
 
             dalBuilder.addJavadoc("GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF\n"
                     + "\nDAL for Cassandra entity - " + rawName + "\n");
 
 
+            dalBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(namespaceToUse, "CommonDal"), entityTable));
+
             JavaFile javaFile = JavaFile.builder(namespaceToUse, dalBuilder.build()).build();
 
             Disk.outputFile(javaFile);
         }
+    }
+
+    private static void generateDalInterface(String namespace) throws IOException {
+        TypeVariableName parameterizingType = TypeVariableName.get("T");
+
+        TypeSpec commonDal = TypeSpec.interfaceBuilder("CommonDal")
+                .addModifiers(Modifier.PUBLIC)
+                .addTypeVariable(parameterizingType)
+                // save
+                .addMethod(MethodSpec.methodBuilder("save")
+                        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .addParameter(parameterizingType, "entity")
+                        .addParameter(getOnComplete(), "onComplete")
+                        .build())
+                // get
+                .addMethod(MethodSpec.methodBuilder("get")
+                        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .addParameter(getOnCompleteWithResult(parameterizingType), "onComplete")
+                        .varargs(true)
+                        .addParameter(Object[].class, "primaryKeys")
+                        .build())
+                        // get
+                .addMethod(MethodSpec.methodBuilder("delete")
+                        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .addParameter(getOnComplete(), "onComplete")
+                        .varargs(true)
+                        .addParameter(Object[].class, "primaryKeys")
+                        .build())
+                // delete
+                .addMethod(MethodSpec.methodBuilder("delete")
+                        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .addParameter(parameterizingType, "entity")
+                        .addParameter(getOnComplete(), "onComplete")
+                        .build())
+                .addJavadoc("GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF\n"
+                        + "\ncommon interface for all DAL classes\n")
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(namespace, commonDal).build();
+        Disk.outputFile(javaFile);
     }
 
     private static FieldSpec getLogger(String nameSpace, String className) {
@@ -91,4 +126,56 @@ public class DalGenerator {
                 .build();
     }
 
+    private static MethodSpec getSave(ClassName tableEntity) {
+       return getEntitySaveOrDelete(tableEntity, "save");
+    }
+
+    private static MethodSpec getDelete(ClassName tableEntity) {
+        return getEntitySaveOrDelete(tableEntity, "delete");
+    }
+
+    private static MethodSpec getEntitySaveOrDelete(ClassName tableEntity, String method) {
+        String entityParamName = getEntityParam(tableEntity);
+
+        TypeSpec resultCallback = TypeSpec.anonymousClassBuilder("")
+                .addSuperinterface(ParameterizedTypeName.get(FutureCallback.class, Void.class))
+                .addMethod(MethodSpec.methodBuilder("onSuccess")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(Void.class, "result")
+                        .addStatement("$L.accept(true)", "onComplete")
+                        .build())
+                .addMethod(MethodSpec.methodBuilder("onFailure")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(Throwable.class, "error")
+                        .addStatement("logger.error(\"$L - {}, ex: \", $L, $L)", method, entityParamName, "error")
+                        .addStatement("$L.accept(false)", "onComplete")
+                        .build())
+                .build();
+
+
+        return MethodSpec.methodBuilder(method)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(tableEntity, entityParamName)
+                .addParameter(getOnComplete(), "onComplete")
+                .addStatement("logger.info(\"$L - {}\", $L)", method, entityParamName)
+                .addCode("\n")
+                .addCode("mapper.$LAsync($L, $L", method, entityParamName, resultCallback)
+                .addCode(");\n")
+                .addJavadoc("$L a $L object.\n", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, method), tableEntity.simpleName())
+                .build();
+    }
+
+    private static String getEntityParam(ClassName tableEntity) {
+        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, tableEntity.simpleName()) + "Obj";
+    }
+
+    private static ParameterizedTypeName getOnComplete() {
+        return ParameterizedTypeName.get(Consumer.class, Boolean.class);
+    }
+
+    private static ParameterizedTypeName getOnCompleteWithResult(TypeName type) {
+        return ParameterizedTypeName.get(ClassName.get(BiConsumer.class), TypeName.get(Boolean.class), type);
+    }
 }
