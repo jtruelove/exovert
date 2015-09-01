@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -19,6 +21,7 @@ public class MetaData {
     private String namespace;
     private String keyspace;
     private String outDir;
+    private DateTime updateTime;
 
     private MetaData(){
         initialized = new AtomicBoolean(false);
@@ -29,6 +32,7 @@ public class MetaData {
             this.namespace = namespace;
             this.keyspace = keyspace;
             this.outDir = outDir;
+            updateTime = DateTime.now(DateTimeZone.UTC);
         }
     }
 
@@ -54,5 +58,9 @@ public class MetaData {
 
     public static ClassName getClassNameForUdt(UserType type) {
         return ClassName.get(MetaData.instance.getUdtNamespace(), Udt.instance.getUdtClassName(type.getTypeName()));
+    }
+
+    public static String getJavaDocHeader(String text) {
+        return "GENERATED CODE DO NOT MODIFY - last updated: " + MetaData.instance.updateTime + "\n\n" + text + "\n";
     }
 }

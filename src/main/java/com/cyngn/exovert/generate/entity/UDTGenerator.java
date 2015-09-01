@@ -42,9 +42,7 @@ public class UDTGenerator {
 
             addFields(udtClassBuilder, userType, name);
 
-            udtClassBuilder.addJavadoc("GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF\n"
-                    + "\nUDT for Cassandra - " + rawName + "\n");
-
+            udtClassBuilder.addJavadoc(MetaData.getJavaDocHeader("UDT for Cassandra - " + rawName));
 
             JavaFile javaFile = JavaFile.builder(namespaceToUse, udtClassBuilder.build()).build();
 
@@ -60,14 +58,14 @@ public class UDTGenerator {
         List<String> fields = new ArrayList<>();
         for (String field : userType.getFieldNames()) {
             DataType type = userType.getFieldType(field);
-            builder.addField(CommonGen.getFieldSpec(field, type, true));
-            builder.addMethod(CommonGen.getSetter(field, type));
-            builder.addMethod(CommonGen.getGetter(field, type));
+            builder.addField(EntityGeneratorHelper.getFieldSpec(field, type, true));
+            builder.addMethod(EntityGeneratorHelper.getSetter(field, type));
+            builder.addMethod(EntityGeneratorHelper.getGetter(field, type));
 
             fields.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, field));
         }
 
-        builder.addMethod(CommonGen.getToString(fields, className));
+        builder.addMethod(EntityGeneratorHelper.getToString(fields, className));
     }
 
     /**

@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/jtruelove/exovert.svg?branch=master)](https://travis-ci.org/jtruelove/exovert)
+[![Build Status](https://travis-ci.org/cyngn/exovert.svg?branch=master)](https://travis-ci.org/cyngn/exovert)
 
 # exovert
 Is a tool that is designed to help free developers up to focus on developing services and not building the boiler plate glue code often involved with accessing a DB, creating POJOs, or building CRUD interfaces.
@@ -11,7 +11,7 @@ It works by reading your schema from the DB then generating the entity classes (
 Current Generator Support
 
 * entity classes
-* DAL (coming soon)
+* DAL
 * REST interface (coming soon)
 * cache support (coming later)
 
@@ -127,7 +127,7 @@ import java.lang.String;
 import java.util.Set;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * UDT for Cassandra - url_package
  */
@@ -178,7 +178,7 @@ import java.lang.Override;
 import java.lang.String;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * UDT for Cassandra - measurement
  */
@@ -231,7 +231,7 @@ import java.lang.Override;
 import java.lang.String;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * Table for Cassandra - payload
  */
@@ -302,7 +302,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * Table for Cassandra - report
  */
@@ -516,7 +516,7 @@ import java.lang.String;
 import java.util.Date;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * Table for Cassandra - upload_data
  */
@@ -614,7 +614,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * Table for Cassandra - test_batch
  */
@@ -678,9 +678,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
- * common interface for all DAL classes
+ * Common interface for all DAL classes
  */
 public interface CommonDal<T> {
   void save(T entity, Consumer<Boolean> onComplete);
@@ -710,7 +710,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * DAL for Cassandra entity - Payload
  */
@@ -826,7 +826,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * DAL for Cassandra entity - Report
  */
@@ -942,7 +942,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * DAL for Cassandra entity - UploadData
  */
@@ -1058,7 +1058,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
  *
  * DAL for Cassandra entity - TestBatch
  */
@@ -1155,10 +1155,7 @@ public class TestBatchDal implements CommonDal<TestBatch> {
     }, primaryKey);
   }
 }
-
 ```
-
-
 
 ### Thanks
 Especially to the [Java Poet Creators](https://github.com/square/javapoet) for making such a great and easy to use code generation library.

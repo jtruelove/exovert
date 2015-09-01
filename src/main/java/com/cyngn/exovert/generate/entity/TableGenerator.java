@@ -45,9 +45,7 @@ public class TableGenerator {
 
             addFields(tableClassBuilder, table, name);
 
-            tableClassBuilder.addJavadoc("GENERATED CODE DO NOT MODIFY, UNLESS YOU HATE YOURSELF\n"
-                    + "\nTable for Cassandra - " + rawName + "\n");
-
+            tableClassBuilder.addJavadoc(MetaData.getJavaDocHeader("Table for Cassandra - " + rawName));
 
             JavaFile javaFile = JavaFile.builder(namespaceToUse, tableClassBuilder.build()).build();
 
@@ -69,20 +67,20 @@ public class TableGenerator {
 
             List<AnnotationSpec> extraAnnotations = new ArrayList<>();
             if(partitionKeys.containsKey(name)) {
-                extraAnnotations.add(CommonGen.getPartitionKeyAnnotation(partitionKeys.get(name)));
+                extraAnnotations.add(EntityGeneratorHelper.getPartitionKeyAnnotation(partitionKeys.get(name)));
             }
 
             if(clusteringKeys.containsKey(name)) {
-                extraAnnotations.add(CommonGen.getClusteringAnnotation(clusteringKeys.get(name)));
+                extraAnnotations.add(EntityGeneratorHelper.getClusteringAnnotation(clusteringKeys.get(name)));
             }
 
-            builder.addField(CommonGen.getFieldSpec(name, type, false, extraAnnotations));
-            builder.addMethod(CommonGen.getSetter(name, type));
-            builder.addMethod(CommonGen.getGetter(name, type));
+            builder.addField(EntityGeneratorHelper.getFieldSpec(name, type, false, extraAnnotations));
+            builder.addMethod(EntityGeneratorHelper.getSetter(name, type));
+            builder.addMethod(EntityGeneratorHelper.getGetter(name, type));
             fields.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name));
         }
 
-        builder.addMethod(CommonGen.getToString(fields, className));
+        builder.addMethod(EntityGeneratorHelper.getToString(fields, className));
     }
 
     /**
