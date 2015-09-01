@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/jtruelove/exovert.svg?branch=master)](https://travis-ci.org/jtruelove/exovert)
+[![Build Status](https://travis-ci.org/cyngn/exovert.svg?branch=master)](https://travis-ci.org/cyngn/exovert)
 
 # exovert
 Is a tool that is designed to help free developers up to focus on developing services and not building the boiler plate glue code often involved with accessing a DB, creating POJOs, or building CRUD interfaces.
