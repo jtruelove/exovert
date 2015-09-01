@@ -4,14 +4,13 @@ import com.cyngn.exovert.util.MetaData;
 import com.cyngn.exovert.util.Udt;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.UserType;
-import com.datastax.driver.mapping.annotations.*;
+import com.datastax.driver.mapping.annotations.ClusteringColumn;
+import com.datastax.driver.mapping.annotations.Column;
+import com.datastax.driver.mapping.annotations.Field;
+import com.datastax.driver.mapping.annotations.FrozenValue;
+import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.google.common.base.CaseFormat;
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.*;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ import java.util.List;
  *
  * @author truelove@cyngn.com (Jeremy Truelove) 8/28/15
  */
-public class CommonGen {
+public class EntityGeneratorHelper {
 
     /**
      * Handle getting the class names for parameterized types.
