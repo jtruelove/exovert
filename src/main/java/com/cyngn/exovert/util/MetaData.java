@@ -42,6 +42,7 @@ public class MetaData {
     public String getUdtNamespace() {return StringUtils.join(new String[]{namespace, "storage", "udt"}, '.'); }
     public String getTableNamespace() {return StringUtils.join(new String[]{namespace, "storage", "table"}, '.'); }
     public String getDalNamespace() {return StringUtils.join(new String[]{namespace, "storage", "dal"}, '.'); }
+    public String getRestNamespace() { return StringUtils.join(new String[]{namespace, "rest"}, '.'); }
 
     public static boolean isSnakeCase(String str) {
         return str.contains("_");

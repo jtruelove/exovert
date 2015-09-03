@@ -1,7 +1,9 @@
 package com.cyngn.exovert.generate.storage;
 
 import com.cyngn.exovert.util.Disk;
+import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;
+import com.cyngn.vertx.async.ResultContext;
 import com.datastax.driver.core.TableMetadata;
 import com.englishtown.vertx.cassandra.CassandraSession;
 import com.englishtown.vertx.cassandra.mapping.VertxMapper;
@@ -43,7 +45,7 @@ public class DalGenerator {
             TypeSpec.Builder dalBuilder = TypeSpec.classBuilder(name)
                     .addModifiers(Modifier.PUBLIC);
 
-            dalBuilder.addField(getLogger(namespaceToUse, name));
+            dalBuilder.addField(GeneratorHelper.getLogger(namespaceToUse, name));
             addCassandraObjects(entityTable, dalBuilder);
             dalBuilder.addMethod(getConstructor(entityTable));
 
@@ -106,11 +108,6 @@ public class DalGenerator {
         Disk.outputFile(javaFile);
     }
 
-    private static FieldSpec getLogger(String nameSpace, String className) {
-        return FieldSpec.builder(Logger.class, "logger", Modifier.FINAL, Modifier.STATIC)
-                .initializer("$T.getLogger($T.class)", LoggerFactory.class, ClassName.get(nameSpace, className)).build();
-    }
-
     private static void addCassandraObjects(ClassName tableEntity, TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(CassandraSession.class, "session", Modifier.FINAL).build());
 
@@ -139,6 +136,7 @@ public class DalGenerator {
 
     private static MethodSpec getDeleteByKey(ClassName tableEntity) {
         TypeName aVoid = ClassName.get(Void.class);
+        String simpleName = tableEntity.simpleName();
 
         // setup the callback
         TypeSpec resultCallback = TypeSpec.anonymousClassBuilder("")
@@ -147,14 +145,15 @@ public class DalGenerator {
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(aVoid, "result")
-                        .addStatement("$L.accept(true)", "onComplete")
+                        .addStatement("$L.accept(new ResultContext(true))", "onComplete")
                         .build())
                 .addMethod(MethodSpec.methodBuilder("onFailure")
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(Throwable.class, "error")
                         .addStatement("logger.error(\"delete - {}, ex: \", $L, $L)", "primaryKey", "error")
-                        .addStatement("$L.accept(false)", "onComplete")
+                        .addStatement("$L.accept(new ResultContext(error, $L))", "onComplete",
+                                "\"Failed to delete " + simpleName + " by key: \" +  primaryKey")
                         .build())
                 .build();
 
@@ -173,6 +172,7 @@ public class DalGenerator {
 
     private static MethodSpec getEntitySaveOrDelete(ClassName tableEntity, String method) {
         String entityParamName = getEntityParam(tableEntity);
+        String simpleName = tableEntity.simpleName();
 
         // setup the callback
         TypeSpec resultCallback = TypeSpec.anonymousClassBuilder("")
@@ -181,14 +181,15 @@ public class DalGenerator {
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(Void.class, "result")
-                        .addStatement("$L.accept(true)", "onComplete")
+                        .addStatement("$L.accept(new ResultContext(true)", "onComplete")
                         .build())
                 .addMethod(MethodSpec.methodBuilder("onFailure")
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(Throwable.class, "error")
                         .addStatement("logger.error(\"$L - {}, ex: \", $L, $L)", method, entityParamName, "error")
-                        .addStatement("$L.accept(false)", "onComplete")
+                        .addStatement("$L.accept(new ResultContext(error, $L))", "onComplete",
+                                "\"Failed to " + method + " " + simpleName + ": \" +  " + entityParamName)
                         .build())
                 .build();
 
@@ -206,6 +207,8 @@ public class DalGenerator {
     }
 
     private static MethodSpec getEntityGet(ClassName tableEntity) {
+        String simpleName = tableEntity.simpleName();
+
         // setup the callback
         TypeSpec resultCallback = TypeSpec.anonymousClassBuilder("")
                 .addSuperinterface(ParameterizedTypeName.get(ClassName.get(FutureCallback.class), tableEntity))
@@ -213,14 +216,15 @@ public class DalGenerator {
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(tableEntity, "result")
-                        .addStatement("$L.accept(true, result)", "onComplete")
+                        .addStatement("$L.accept(new ResultContext(true, result))", "onComplete")
                         .build())
                 .addMethod(MethodSpec.methodBuilder("onFailure")
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(Throwable.class, "error")
                         .addStatement("logger.error(\"get - {}, ex: \", $L, $L)", "primaryKey", "error")
-                        .addStatement("$L.accept(false, null)", "onComplete")
+                        .addStatement("$L.accept(new ResultContext(error, $L))", "onComplete",
+                                "\"Failed to get " + simpleName + " by key: \" +  primaryKey")
                         .build())
                 .build();
 
@@ -233,7 +237,7 @@ public class DalGenerator {
                 .addCode("\n")
                 .addCode("mapper.getAsync($L, $L", resultCallback, "primaryKey")
                 .addCode(");\n")
-                .addJavadoc("Get a $L object by primary key.\n", tableEntity.simpleName())
+                .addJavadoc("Get a $L object by primary key.\n", simpleName)
                 .build();
     }
 
@@ -243,10 +247,11 @@ public class DalGenerator {
     }
 
     private static ParameterizedTypeName getOnComplete() {
-        return ParameterizedTypeName.get(Consumer.class, Boolean.class);
+        return ParameterizedTypeName.get(Consumer.class, ResultContext.class);
     }
 
     private static ParameterizedTypeName getOnCompleteWithResult(TypeName type) {
-        return ParameterizedTypeName.get(ClassName.get(BiConsumer.class), TypeName.get(Boolean.class), type);
+        return ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                ParameterizedTypeName.get(ClassName.get(ResultContext.class), type));
     }
 }

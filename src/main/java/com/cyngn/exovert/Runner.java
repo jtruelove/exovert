@@ -3,6 +3,7 @@ package com.cyngn.exovert;
 
 import com.cyngn.exovert.generate.entity.TableGenerator;
 import com.cyngn.exovert.generate.entity.UDTGenerator;
+import com.cyngn.exovert.generate.rest.RestGenerator;
 import com.cyngn.exovert.generate.storage.DalGenerator;
 import com.cyngn.exovert.util.MetaData;
 import com.cyngn.exovert.util.Udt;
@@ -87,6 +88,9 @@ public class Runner {
         catch (IOException ex) { ex.printStackTrace(); }
 
         try { DalGenerator.generate(ksm.getTables()); }
+        catch (IOException e) { e.printStackTrace(); }
+
+        try { RestGenerator.generate(ksm.getTables()); }
         catch (IOException e) { e.printStackTrace(); }
     }
 
