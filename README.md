@@ -127,7 +127,7 @@ import java.lang.String;
 import java.util.Set;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * UDT for Cassandra - url_package
  */
@@ -178,7 +178,7 @@ import java.lang.Override;
 import java.lang.String;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * UDT for Cassandra - measurement
  */
@@ -231,7 +231,7 @@ import java.lang.Override;
 import java.lang.String;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * Table for Cassandra - payload
  */
@@ -302,7 +302,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * Table for Cassandra - report
  */
@@ -516,7 +516,7 @@ import java.lang.String;
 import java.util.Date;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * Table for Cassandra - upload_data
  */
@@ -614,7 +614,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * Table for Cassandra - test_batch
  */
@@ -672,50 +672,48 @@ public class TestBatch {
 }
 package com.cyngn.chrono.storage.dal;
 
-import java.lang.Boolean;
+import com.cyngn.vertx.async.ResultContext;
 import java.lang.Object;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * Common interface for all DAL classes
  */
 public interface CommonDal<T> {
-  void save(T entity, Consumer<Boolean> onComplete);
+  void save(T entity, Consumer<ResultContext> onComplete);
 
-  void get(BiConsumer<Boolean, T> onComplete, Object... primaryKeys);
+  void get(Consumer<ResultContext<T>> onComplete, Object... primaryKeys);
 
-  void delete(Consumer<Boolean> onComplete, Object... primaryKeys);
+  void delete(Consumer<ResultContext> onComplete, Object... primaryKeys);
 
-  void delete(T entity, Consumer<Boolean> onComplete);
+  void delete(T entity, Consumer<ResultContext> onComplete);
 }
 package com.cyngn.chrono.storage.dal;
 
 import com.cyngn.chrono.storage.table.Payload;
+import com.cyngn.vertx.async.ResultContext;
 import com.englishtown.vertx.cassandra.CassandraSession;
 import com.englishtown.vertx.cassandra.mapping.VertxMapper;
 import com.englishtown.vertx.cassandra.mapping.VertxMappingManager;
 import com.englishtown.vertx.cassandra.mapping.impl.DefaultVertxMappingManager;
 import com.google.common.util.concurrent.FutureCallback;
-import java.lang.Boolean;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.Throwable;
 import java.lang.Void;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * DAL for Cassandra entity - Payload
  */
 public class PayloadDal implements CommonDal<Payload> {
-  static final Logger logger = LoggerFactory.getLogger(PayloadDal.class);
+  private static final Logger logger = LoggerFactory.getLogger(PayloadDal.class);
 
   final CassandraSession session;
 
@@ -730,19 +728,19 @@ public class PayloadDal implements CommonDal<Payload> {
   /**
    * Save a Payload object.
    */
-  public void save(Payload payloadObj, Consumer<Boolean> onComplete) {
+  public void save(Payload payloadObj, Consumer<ResultContext> onComplete) {
     logger.info("save - {}", payloadObj);
 
     mapper.saveAsync(payloadObj, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true);
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("save - {}, ex: ", payloadObj, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to save Payload: " +  payloadObj));
       }
     });
   }
@@ -750,19 +748,19 @@ public class PayloadDal implements CommonDal<Payload> {
   /**
    * Delete a Payload object.
    */
-  public void delete(Payload payloadObj, Consumer<Boolean> onComplete) {
+  public void delete(Payload payloadObj, Consumer<ResultContext> onComplete) {
     logger.info("delete - {}", payloadObj);
 
     mapper.deleteAsync(payloadObj, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true);
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("delete - {}, ex: ", payloadObj, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to delete Payload: " +  payloadObj));
       }
     });
   }
@@ -770,19 +768,19 @@ public class PayloadDal implements CommonDal<Payload> {
   /**
    * Delete a Payload object by key.
    */
-  public void delete(Consumer<Boolean> onComplete, Object... primaryKey) {
+  public void delete(Consumer<ResultContext> onComplete, Object... primaryKey) {
     logger.info("delete - {}", primaryKey);
 
     mapper.deleteAsync(new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true));
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("delete - {}, ex: ", primaryKey, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to delete Payload by key: " +  primaryKey));
       }
     }, primaryKey);
   }
@@ -790,19 +788,19 @@ public class PayloadDal implements CommonDal<Payload> {
   /**
    * Get a Payload object by primary key.
    */
-  public void get(BiConsumer<Boolean, Payload> onComplete, Object... primaryKey) {
+  public void get(Consumer<ResultContext<Payload>> onComplete, Object... primaryKey) {
     logger.info("get - {}", primaryKey);
 
     mapper.getAsync(new FutureCallback<Payload>() {
       @Override
       public void onSuccess(Payload result) {
-        onComplete.accept(true, result);
+        onComplete.accept(new ResultContext(true, result));
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("get - {}, ex: ", primaryKey, error);
-        onComplete.accept(false, null);
+        onComplete.accept(new ResultContext(error, "Failed to get Payload by key: " +  primaryKey));
       }
     }, primaryKey);
   }
@@ -810,28 +808,27 @@ public class PayloadDal implements CommonDal<Payload> {
 package com.cyngn.chrono.storage.dal;
 
 import com.cyngn.chrono.storage.table.Report;
+import com.cyngn.vertx.async.ResultContext;
 import com.englishtown.vertx.cassandra.CassandraSession;
 import com.englishtown.vertx.cassandra.mapping.VertxMapper;
 import com.englishtown.vertx.cassandra.mapping.VertxMappingManager;
 import com.englishtown.vertx.cassandra.mapping.impl.DefaultVertxMappingManager;
 import com.google.common.util.concurrent.FutureCallback;
-import java.lang.Boolean;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.Throwable;
 import java.lang.Void;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * DAL for Cassandra entity - Report
  */
 public class ReportDal implements CommonDal<Report> {
-  static final Logger logger = LoggerFactory.getLogger(ReportDal.class);
+  private static final Logger logger = LoggerFactory.getLogger(ReportDal.class);
 
   final CassandraSession session;
 
@@ -846,19 +843,19 @@ public class ReportDal implements CommonDal<Report> {
   /**
    * Save a Report object.
    */
-  public void save(Report reportObj, Consumer<Boolean> onComplete) {
+  public void save(Report reportObj, Consumer<ResultContext> onComplete) {
     logger.info("save - {}", reportObj);
 
     mapper.saveAsync(reportObj, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true);
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("save - {}, ex: ", reportObj, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to save Report: " +  reportObj));
       }
     });
   }
@@ -866,19 +863,19 @@ public class ReportDal implements CommonDal<Report> {
   /**
    * Delete a Report object.
    */
-  public void delete(Report reportObj, Consumer<Boolean> onComplete) {
+  public void delete(Report reportObj, Consumer<ResultContext> onComplete) {
     logger.info("delete - {}", reportObj);
 
     mapper.deleteAsync(reportObj, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true);
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("delete - {}, ex: ", reportObj, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to delete Report: " +  reportObj));
       }
     });
   }
@@ -886,19 +883,19 @@ public class ReportDal implements CommonDal<Report> {
   /**
    * Delete a Report object by key.
    */
-  public void delete(Consumer<Boolean> onComplete, Object... primaryKey) {
+  public void delete(Consumer<ResultContext> onComplete, Object... primaryKey) {
     logger.info("delete - {}", primaryKey);
 
     mapper.deleteAsync(new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true));
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("delete - {}, ex: ", primaryKey, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to delete Report by key: " +  primaryKey));
       }
     }, primaryKey);
   }
@@ -906,19 +903,19 @@ public class ReportDal implements CommonDal<Report> {
   /**
    * Get a Report object by primary key.
    */
-  public void get(BiConsumer<Boolean, Report> onComplete, Object... primaryKey) {
+  public void get(Consumer<ResultContext<Report>> onComplete, Object... primaryKey) {
     logger.info("get - {}", primaryKey);
 
     mapper.getAsync(new FutureCallback<Report>() {
       @Override
       public void onSuccess(Report result) {
-        onComplete.accept(true, result);
+        onComplete.accept(new ResultContext(true, result));
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("get - {}, ex: ", primaryKey, error);
-        onComplete.accept(false, null);
+        onComplete.accept(new ResultContext(error, "Failed to get Report by key: " +  primaryKey));
       }
     }, primaryKey);
   }
@@ -926,28 +923,27 @@ public class ReportDal implements CommonDal<Report> {
 package com.cyngn.chrono.storage.dal;
 
 import com.cyngn.chrono.storage.table.UploadData;
+import com.cyngn.vertx.async.ResultContext;
 import com.englishtown.vertx.cassandra.CassandraSession;
 import com.englishtown.vertx.cassandra.mapping.VertxMapper;
 import com.englishtown.vertx.cassandra.mapping.VertxMappingManager;
 import com.englishtown.vertx.cassandra.mapping.impl.DefaultVertxMappingManager;
 import com.google.common.util.concurrent.FutureCallback;
-import java.lang.Boolean;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.Throwable;
 import java.lang.Void;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * DAL for Cassandra entity - UploadData
  */
 public class UploadDataDal implements CommonDal<UploadData> {
-  static final Logger logger = LoggerFactory.getLogger(UploadDataDal.class);
+  private static final Logger logger = LoggerFactory.getLogger(UploadDataDal.class);
 
   final CassandraSession session;
 
@@ -962,19 +958,19 @@ public class UploadDataDal implements CommonDal<UploadData> {
   /**
    * Save a UploadData object.
    */
-  public void save(UploadData uploadDataObj, Consumer<Boolean> onComplete) {
+  public void save(UploadData uploadDataObj, Consumer<ResultContext> onComplete) {
     logger.info("save - {}", uploadDataObj);
 
     mapper.saveAsync(uploadDataObj, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true);
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("save - {}, ex: ", uploadDataObj, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to save UploadData: " +  uploadDataObj));
       }
     });
   }
@@ -982,19 +978,19 @@ public class UploadDataDal implements CommonDal<UploadData> {
   /**
    * Delete a UploadData object.
    */
-  public void delete(UploadData uploadDataObj, Consumer<Boolean> onComplete) {
+  public void delete(UploadData uploadDataObj, Consumer<ResultContext> onComplete) {
     logger.info("delete - {}", uploadDataObj);
 
     mapper.deleteAsync(uploadDataObj, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true);
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("delete - {}, ex: ", uploadDataObj, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to delete UploadData: " +  uploadDataObj));
       }
     });
   }
@@ -1002,19 +998,19 @@ public class UploadDataDal implements CommonDal<UploadData> {
   /**
    * Delete a UploadData object by key.
    */
-  public void delete(Consumer<Boolean> onComplete, Object... primaryKey) {
+  public void delete(Consumer<ResultContext> onComplete, Object... primaryKey) {
     logger.info("delete - {}", primaryKey);
 
     mapper.deleteAsync(new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true));
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("delete - {}, ex: ", primaryKey, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to delete UploadData by key: " +  primaryKey));
       }
     }, primaryKey);
   }
@@ -1022,19 +1018,19 @@ public class UploadDataDal implements CommonDal<UploadData> {
   /**
    * Get a UploadData object by primary key.
    */
-  public void get(BiConsumer<Boolean, UploadData> onComplete, Object... primaryKey) {
+  public void get(Consumer<ResultContext<UploadData>> onComplete, Object... primaryKey) {
     logger.info("get - {}", primaryKey);
 
     mapper.getAsync(new FutureCallback<UploadData>() {
       @Override
       public void onSuccess(UploadData result) {
-        onComplete.accept(true, result);
+        onComplete.accept(new ResultContext(true, result));
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("get - {}, ex: ", primaryKey, error);
-        onComplete.accept(false, null);
+        onComplete.accept(new ResultContext(error, "Failed to get UploadData by key: " +  primaryKey));
       }
     }, primaryKey);
   }
@@ -1042,28 +1038,27 @@ public class UploadDataDal implements CommonDal<UploadData> {
 package com.cyngn.chrono.storage.dal;
 
 import com.cyngn.chrono.storage.table.TestBatch;
+import com.cyngn.vertx.async.ResultContext;
 import com.englishtown.vertx.cassandra.CassandraSession;
 import com.englishtown.vertx.cassandra.mapping.VertxMapper;
 import com.englishtown.vertx.cassandra.mapping.VertxMappingManager;
 import com.englishtown.vertx.cassandra.mapping.impl.DefaultVertxMappingManager;
 import com.google.common.util.concurrent.FutureCallback;
-import java.lang.Boolean;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.Throwable;
 import java.lang.Void;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-01T06:04:48.824Z
+ * GENERATED CODE DO NOT MODIFY - last updated: 2015-09-03T23:42:26.716Z
  *
  * DAL for Cassandra entity - TestBatch
  */
 public class TestBatchDal implements CommonDal<TestBatch> {
-  static final Logger logger = LoggerFactory.getLogger(TestBatchDal.class);
+  private static final Logger logger = LoggerFactory.getLogger(TestBatchDal.class);
 
   final CassandraSession session;
 
@@ -1078,19 +1073,19 @@ public class TestBatchDal implements CommonDal<TestBatch> {
   /**
    * Save a TestBatch object.
    */
-  public void save(TestBatch testBatchObj, Consumer<Boolean> onComplete) {
+  public void save(TestBatch testBatchObj, Consumer<ResultContext> onComplete) {
     logger.info("save - {}", testBatchObj);
 
     mapper.saveAsync(testBatchObj, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true);
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("save - {}, ex: ", testBatchObj, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to save TestBatch: " +  testBatchObj));
       }
     });
   }
@@ -1098,19 +1093,19 @@ public class TestBatchDal implements CommonDal<TestBatch> {
   /**
    * Delete a TestBatch object.
    */
-  public void delete(TestBatch testBatchObj, Consumer<Boolean> onComplete) {
+  public void delete(TestBatch testBatchObj, Consumer<ResultContext> onComplete) {
     logger.info("delete - {}", testBatchObj);
 
     mapper.deleteAsync(testBatchObj, new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true);
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("delete - {}, ex: ", testBatchObj, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to delete TestBatch: " +  testBatchObj));
       }
     });
   }
@@ -1118,19 +1113,19 @@ public class TestBatchDal implements CommonDal<TestBatch> {
   /**
    * Delete a TestBatch object by key.
    */
-  public void delete(Consumer<Boolean> onComplete, Object... primaryKey) {
+  public void delete(Consumer<ResultContext> onComplete, Object... primaryKey) {
     logger.info("delete - {}", primaryKey);
 
     mapper.deleteAsync(new FutureCallback<Void>() {
       @Override
       public void onSuccess(Void result) {
-        onComplete.accept(true);
+        onComplete.accept(new ResultContext(true));
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("delete - {}, ex: ", primaryKey, error);
-        onComplete.accept(false);
+        onComplete.accept(new ResultContext(error, "Failed to delete TestBatch by key: " +  primaryKey));
       }
     }, primaryKey);
   }
@@ -1138,19 +1133,19 @@ public class TestBatchDal implements CommonDal<TestBatch> {
   /**
    * Get a TestBatch object by primary key.
    */
-  public void get(BiConsumer<Boolean, TestBatch> onComplete, Object... primaryKey) {
+  public void get(Consumer<ResultContext<TestBatch>> onComplete, Object... primaryKey) {
     logger.info("get - {}", primaryKey);
 
     mapper.getAsync(new FutureCallback<TestBatch>() {
       @Override
       public void onSuccess(TestBatch result) {
-        onComplete.accept(true, result);
+        onComplete.accept(new ResultContext(true, result));
       }
 
       @Override
       public void onFailure(Throwable error) {
         logger.error("get - {}, ex: ", primaryKey, error);
-        onComplete.accept(false, null);
+        onComplete.accept(new ResultContext(error, "Failed to get TestBatch by key: " +  primaryKey));
       }
     }, primaryKey);
   }

@@ -32,7 +32,7 @@ dependencies {
     compile "com.google.guava:guava:18.0"
     compile "commons-lang:commons-lang:2.6"
     compile "net.sf.jopt-simple:jopt-simple:4.9"
-    compile "com.cyngn.vertx:vertx-util:0.5.3"
+    compile "com.cyngn.vertx:vertx-util:0.5.4"
     compile "com.englishtown.vertx:vertx-cassandra:3.0.0"
     compile "com.englishtown.vertx:vertx-cassandra-mapping:3.0.0"
     compile "com.squareup:javapoet:1.2.0"
