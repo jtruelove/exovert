@@ -9,7 +9,13 @@ import com.cyngn.vertx.web.JsonUtil;
 import com.cyngn.vertx.web.RestApi;
 import com.datastax.driver.core.TableMetadata;
 import com.google.common.base.CaseFormat;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -24,6 +30,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
+ * Generates a REST interface for doing CRUD operations
+ *
  * @author truelove@cyngn.com (Jeremy Truelove) 9/1/15
  */
 public class RestGenerator {
@@ -47,7 +55,7 @@ public class RestGenerator {
             restBuilder.addField(GeneratorHelper.getLogger(namespaceToUse, name));
 
             restBuilder.addJavadoc(MetaData.getJavaDocHeader("REST Api for Cassandra entity - {@link " +
-                    ClassName.get(MetaData.instance.getTableNamespace(), rawName)) + "}");
+                    ClassName.get(MetaData.instance.getTableNamespace(), rawName) + "}"));
 
             restBuilder.addSuperinterface(RestApi.class);
             addMemberVars(tableName, dalName, restBuilder);
@@ -91,7 +99,6 @@ public class RestGenerator {
 
         return builder.build();
     }
-
 
     private static void addMemberVars(String rawClass, String dalName, TypeSpec.Builder builder) {
         String storageNamespace = MetaData.instance.getDalNamespace();

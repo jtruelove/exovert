@@ -4,6 +4,7 @@ package com.cyngn.exovert;
 import com.cyngn.exovert.generate.entity.TableGenerator;
 import com.cyngn.exovert.generate.entity.UDTGenerator;
 import com.cyngn.exovert.generate.rest.RestGenerator;
+import com.cyngn.exovert.generate.server.ServerGenerator;
 import com.cyngn.exovert.generate.storage.DalGenerator;
 import com.cyngn.exovert.util.MetaData;
 import com.cyngn.exovert.util.Udt;
@@ -45,6 +46,7 @@ public class CrudCreator {
     private OptionSpec<String> out;
     private OptionSpec preview;
     private OptionSpec create;
+    private OptionSpec server;
     private OptionSpec<String> rest;
     private OptionSpec help;
 
@@ -85,7 +87,8 @@ public class CrudCreator {
             UDTGenerator.generate(ksm.getUserTypes());
             TableGenerator.generate(ksm.getTables());
             DalGenerator.generate(ksm.getTables());
-            if(optionSet.has(rest)) { RestGenerator.generate(ksm.getTables()); }
+            if(optionSet.has(rest) || optionSet.has(server)) { RestGenerator.generate(ksm.getTables()); }
+            if(optionSet.has(server)) { ServerGenerator.generate(ksm.getTables()); }
         } catch (IOException ex) {
             System.out.println("Generation failed: ex " + ex.getMessage());
             ex.printStackTrace();
@@ -150,6 +153,7 @@ public class CrudCreator {
         rest = parser.acceptsAll(asList("rest", "r"), "generate the REST API for the scheme")
                 .withOptionalArg()
                 .ofType(String.class);
+        server = parser.acceptsAll(asList("server", "s"), "generate a simple server, implies the --rest option also");
         help = parser.accepts("help", "shows this message").forHelp();
         return parser;
     }
