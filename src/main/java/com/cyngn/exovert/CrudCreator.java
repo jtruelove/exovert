@@ -129,27 +129,28 @@ public class CrudCreator {
      */
     private OptionParser getParser() {
         OptionParser parser = new OptionParser();
-        create = parser.acceptsAll(asList("create", "c"), "create the basic service infrastructure");
+        create = parser.acceptsAll(asList("create", "c"), "create the files on disk");
         preview = parser.acceptsAll(asList("preview", "p"), "output all the java files to the console, don't create files");
-        keyspace = parser.acceptsAll(asList("keyspace", "k"), "the keyspace to read from")
+        keyspace = parser.acceptsAll(asList("keyspace", "k"), "the keyspace from which to read")
                 .requiredIf(create, preview)
                 .withRequiredArg()
                 .ofType(String.class);
-        namespace = parser.acceptsAll(asList("namespace", "n"), "the namespace to create java classes in")
+        namespace = parser.acceptsAll(asList("namespace", "n"), "the namespace for generated java classes")
                 .requiredIf(create, preview)
                 .withRequiredArg()
                 .ofType(String.class);
-        db = parser.acceptsAll(asList("db", "d"), "the db host to connect to")
-                .requiredIf(create, preview)
-                .withRequiredArg().ofType(String.class);
-        out = parser.acceptsAll(asList("out", "o"), "the output dir to place files in")
-                .requiredIf(create)
+        db = parser.acceptsAll(asList("db", "d"), "the db host that has the keyspace")
                 .withRequiredArg()
+                .defaultsTo("localhost")
+                .ofType(String.class);
+        out = parser.acceptsAll(asList("out", "o"), "the output dir in which to place files")
+                .withRequiredArg()
+                .defaultsTo("./tmp")
                 .ofType(String.class);
         rest = parser.acceptsAll(asList("rest", "r"), "generate the REST API for the scheme")
                 .withOptionalArg()
                 .ofType(String.class);
-        help = parser.accepts("help", "shows this message");
+        help = parser.accepts("help", "shows this message").forHelp();
         return parser;
     }
 
@@ -185,7 +186,7 @@ public class CrudCreator {
                 Promise.newInstance(vertx).then((context,onComplete) ->
                         initCassandra(success -> onComplete.accept(success)))
                 .except(context -> System.out.println("failed, ex: " + context.getString(Promise.CONTEXT_FAILURE_KEY)))
-                .done(context -> handler.callback())
+                .done(context -> { handler.callback(); System.exit(0); })
                 .eval();
             });
         } else {

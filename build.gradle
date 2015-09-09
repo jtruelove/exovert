@@ -7,10 +7,12 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'application'
 
 version = '0.1.0'
 group = "com.cyngn.vertx"
 archivesBaseName = "exovert"
+mainClassName = "com.cyngn.exovert.CrudCreator"
 
 if (!JavaVersion.current().java8Compatible) {
     throw new IllegalStateException('''A Haiku:
@@ -70,6 +72,12 @@ artifacts {
 shadowJar {
     classifier = 'fat'
     manifest {
-        attributes 'Main-Class': 'com.cyngn.exovert.Runner'
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+run {
+    if (project.hasProperty('args')) {
+        args project.args.split('\\s')
     }
 }
