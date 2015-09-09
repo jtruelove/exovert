@@ -54,7 +54,8 @@ public class DalGenerator {
             dalBuilder.addMethod(getDeleteByKey(entityTable));
             dalBuilder.addMethod(getEntityGet(entityTable));
 
-            dalBuilder.addJavadoc(MetaData.getJavaDocHeader("DAL for Cassandra entity - " + rawName));
+            dalBuilder.addJavadoc(MetaData.getJavaDocHeader("DAL for Cassandra entity - {@link " +
+                    ClassName.get(MetaData.instance.getTableNamespace(), rawName) + "}"));
 
             dalBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(namespaceToUse, "CommonDal"), entityTable));
 
@@ -166,7 +167,7 @@ public class DalGenerator {
                 .addCode("\n")
                 .addCode("mapper.deleteAsync($L, $L", resultCallback, "primaryKey")
                 .addCode(");\n")
-                .addJavadoc("Delete a $L object by key.\n", tableEntity.simpleName())
+                .addJavadoc("Delete a {@link $L} object by key.\n", tableEntity)
                 .build();
     }
 
@@ -181,7 +182,7 @@ public class DalGenerator {
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(Void.class, "result")
-                        .addStatement("$L.accept(new ResultContext(true)", "onComplete")
+                        .addStatement("$L.accept(new ResultContext(true))", "onComplete")
                         .build())
                 .addMethod(MethodSpec.methodBuilder("onFailure")
                         .addAnnotation(Override.class)
@@ -202,7 +203,8 @@ public class DalGenerator {
                 .addCode("\n")
                 .addCode("mapper.$LAsync($L, $L", method, entityParamName, resultCallback)
                 .addCode(");\n")
-                .addJavadoc("$L a $L object.\n", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, method), tableEntity.simpleName())
+                .addJavadoc("$L a {@link $L} object.\n", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, method),
+                        tableEntity)
                 .build();
     }
 
@@ -237,7 +239,7 @@ public class DalGenerator {
                 .addCode("\n")
                 .addCode("mapper.getAsync($L, $L", resultCallback, "primaryKey")
                 .addCode(");\n")
-                .addJavadoc("Get a $L object by primary key.\n", simpleName)
+                .addJavadoc("Get a {@link $L} object by primary key.\n", tableEntity)
                 .build();
     }
 

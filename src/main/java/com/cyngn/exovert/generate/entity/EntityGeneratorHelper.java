@@ -2,7 +2,9 @@ package com.cyngn.exovert.generate.entity;
 
 import com.cyngn.exovert.util.MetaData;
 import com.cyngn.exovert.util.Udt;
+import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.Column;
@@ -15,6 +17,7 @@ import com.squareup.javapoet.*;
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Shared functions for generating entity code.
@@ -160,7 +163,7 @@ public class EntityGeneratorHelper {
     public static AnnotationSpec getColumnAnnotation(String field) {
         AnnotationSpec.Builder builder = AnnotationSpec.builder(Column.class);
         if(MetaData.isSnakeCase(field)) {
-            builder.addMember("value", "$S", field);
+            builder.addMember("value", "name = $S", field);
         }
         return builder.build();
     }
@@ -173,7 +176,7 @@ public class EntityGeneratorHelper {
     public static AnnotationSpec getFieldAnnotation(String field) {
         AnnotationSpec.Builder builder = AnnotationSpec.builder(Field.class);
         if(MetaData.isSnakeCase(field)) {
-            builder.addMember("value", "$S", field);
+            builder.addMember("value", "name = $S", field);
         }
         return builder.build();
     }
@@ -230,5 +233,15 @@ public class EntityGeneratorHelper {
         }
         builder.addStatement("$S", "}");
         return builder.build();
+    }
+
+    /**
+     * Get the primary key for a Cassandra table
+     *
+     * @param table the Cassandra table
+     * @return the names in order of the primary key fields
+     */
+    public static List<String> getPrimaryKey(TableMetadata table) {
+        return table.getPrimaryKey().stream().map(ColumnMetadata::getName).collect(Collectors.toList());
     }
 }

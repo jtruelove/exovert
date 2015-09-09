@@ -45,7 +45,7 @@ public class TableGenerator {
 
             addFields(tableClassBuilder, table, name);
 
-            tableClassBuilder.addJavadoc(MetaData.getJavaDocHeader("Table for Cassandra - " + rawName));
+            tableClassBuilder.addJavadoc(MetaData.getJavaDocHeader("Table class for Cassandra - " + rawName));
 
             JavaFile javaFile = JavaFile.builder(namespaceToUse, tableClassBuilder.build()).build();
 

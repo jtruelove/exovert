@@ -22,27 +22,34 @@ public class MetaData {
     private String keyspace;
     private String outDir;
     private DateTime updateTime;
+    private String prefix;
+
+    private static final String DEFAULT_API_PREFIX = "/api/v1/";
 
     private MetaData(){
         initialized = new AtomicBoolean(false);
     }
 
-    public synchronized void init(String namespace, String keyspace, String outDir) {
+    public synchronized void init(String namespace, String keyspace, String outDir, String restPrefix) {
         if(initialized.compareAndSet(false, true)) {
             this.namespace = namespace;
             this.keyspace = keyspace;
             this.outDir = outDir;
             updateTime = DateTime.now(DateTimeZone.UTC);
+
+            if (StringUtils.isNotEmpty(restPrefix)) { prefix = restPrefix + (restPrefix.endsWith("/") ? "" : "/");
+            } else { prefix = DEFAULT_API_PREFIX; }
         }
     }
 
     public String getNamespace() { return namespace; }
     public String getKeyspace() { return keyspace; }
     public String getOutDir() { return outDir; }
-    public String getUdtNamespace() {return StringUtils.join(new String[]{namespace, "storage", "udt"}, '.'); }
-    public String getTableNamespace() {return StringUtils.join(new String[]{namespace, "storage", "table"}, '.'); }
-    public String getDalNamespace() {return StringUtils.join(new String[]{namespace, "storage", "dal"}, '.'); }
+    public String getUdtNamespace() { return StringUtils.join(new String[]{namespace, "storage", "udt"}, '.'); }
+    public String getTableNamespace() { return StringUtils.join(new String[]{namespace, "storage", "table"}, '.'); }
+    public String getDalNamespace() { return StringUtils.join(new String[]{namespace, "storage", "dal"}, '.'); }
     public String getRestNamespace() { return StringUtils.join(new String[]{namespace, "rest"}, '.'); }
+    public String getRestPrefix() { return prefix; }
 
     public static boolean isSnakeCase(String str) {
         return str.contains("_");

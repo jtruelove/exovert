@@ -42,7 +42,7 @@ public class UDTGenerator {
 
             addFields(udtClassBuilder, userType, name);
 
-            udtClassBuilder.addJavadoc(MetaData.getJavaDocHeader("UDT for Cassandra - " + rawName));
+            udtClassBuilder.addJavadoc(MetaData.getJavaDocHeader("UDT class for Cassandra - " + rawName));
 
             JavaFile javaFile = JavaFile.builder(namespaceToUse, udtClassBuilder.build()).build();
 

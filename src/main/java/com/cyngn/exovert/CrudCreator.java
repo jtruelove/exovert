@@ -34,7 +34,7 @@ import static java.util.Arrays.asList;
  *
  * @author truelove@cyngn.com (Jeremy Truelove) 5/15/15
  */
-public class Runner {
+public class CrudCreator {
 
     private static Vertx vertx;
 
@@ -45,7 +45,7 @@ public class Runner {
     private OptionSpec<String> out;
     private OptionSpec preview;
     private OptionSpec create;
-    private OptionSpec rest;
+    private OptionSpec<String> rest;
     private OptionSpec help;
 
     // the primary commands users can select
@@ -55,7 +55,7 @@ public class Runner {
     private DefaultCassandraSession session;
     private OptionSet optionSet;
 
-    private Runner() {
+    private CrudCreator() {
         vertx = Vertx.vertx();
         parser = getParser();
 
@@ -81,28 +81,27 @@ public class Runner {
     }
 
     private void execute(KeyspaceMetadata ksm) {
-        try { UDTGenerator.generate(ksm.getUserTypes()); }
-        catch (IOException e) { e.printStackTrace(); }
-
-        try { TableGenerator.generate(ksm.getTables()); }
-        catch (IOException ex) { ex.printStackTrace(); }
-
-        try { DalGenerator.generate(ksm.getTables()); }
-        catch (IOException e) { e.printStackTrace(); }
-
-        try { RestGenerator.generate(ksm.getTables()); }
-        catch (IOException e) { e.printStackTrace(); }
+        try {
+            UDTGenerator.generate(ksm.getUserTypes());
+            TableGenerator.generate(ksm.getTables());
+            DalGenerator.generate(ksm.getTables());
+            if(optionSet.has(rest)) { RestGenerator.generate(ksm.getTables()); }
+        } catch (IOException ex) {
+            System.out.println("Generation failed: ex " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     private void init(boolean isPreview) {
         String outDir = out.value(optionSet);
         String keySpace = keyspace.value(optionSet);
         String nameSpace = namespace.value(optionSet);
+        String restPrefix = rest.value(optionSet);
 
         KeyspaceMetadata ksm = session.getCluster().getMetadata().getKeyspace(keySpace);
 
         Udt.instance.init(ksm);
-        MetaData.instance.init(nameSpace, keySpace, !isPreview ? outDir : null);
+        MetaData.instance.init(nameSpace, keySpace, !isPreview ? outDir : null, restPrefix);
         VertxRef.instance.init(vertx);
     }
 
@@ -132,14 +131,24 @@ public class Runner {
         OptionParser parser = new OptionParser();
         create = parser.acceptsAll(asList("create", "c"), "create the basic service infrastructure");
         preview = parser.acceptsAll(asList("preview", "p"), "output all the java files to the console, don't create files");
-        keyspace = parser.acceptsAll(asList("keyspace", "k"), "the keyspace to read from").requiredIf(create, preview)
+        keyspace = parser.acceptsAll(asList("keyspace", "k"), "the keyspace to read from")
+                .requiredIf(create, preview)
+                .withRequiredArg()
+                .ofType(String.class);
+        namespace = parser.acceptsAll(asList("namespace", "n"), "the namespace to create java classes in")
+                .requiredIf(create, preview)
+                .withRequiredArg()
+                .ofType(String.class);
+        db = parser.acceptsAll(asList("db", "d"), "the db host to connect to")
+                .requiredIf(create, preview)
                 .withRequiredArg().ofType(String.class);
-        namespace = parser.acceptsAll(asList("namespace", "n"), "the namespace to create java classes in").requiredIf(create, preview)
-                .withRequiredArg().ofType(String.class);
-        db = parser.acceptsAll(asList("db", "d"), "the db host to connect to").requiredIf(create, preview)
-                .withRequiredArg().ofType(String.class);
-        out = parser.acceptsAll(asList("out", "o"), "the output dir to place files in").requiredIf(create).withRequiredArg().ofType(String.class);
-        rest = parser.acceptsAll(asList("rest", "r"), "generate the REST API for the scheme");
+        out = parser.acceptsAll(asList("out", "o"), "the output dir to place files in")
+                .requiredIf(create)
+                .withRequiredArg()
+                .ofType(String.class);
+        rest = parser.acceptsAll(asList("rest", "r"), "generate the REST API for the scheme")
+                .withOptionalArg()
+                .ofType(String.class);
         help = parser.accepts("help", "shows this message");
         return parser;
     }
@@ -189,7 +198,7 @@ public class Runner {
      * Entry point.
      */
     public static void main(String [] args) throws Exception {
-        new Runner().run(args);
+        new CrudCreator().run(args);
 
         // keep the app alive
         System.in.read();
