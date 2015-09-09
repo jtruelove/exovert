@@ -30,7 +30,7 @@ public class TableGenerator {
      * Kicks off table generation.
      *
      * @param tables the cassandra table meta data
-     * @throws IOException
+     * @throws IOException errors writing to a file
      */
     public static void generate(Collection<TableMetadata> tables) throws IOException {
         String namespaceToUse = MetaData.instance.getTableNamespace();

@@ -183,6 +183,8 @@ public class Runner {
 
     /**
      * Entry point.
+     * @param args command line args
+     * @throws Exception mostly runtime exceptions
      */
     public static void main(String [] args) throws Exception {
         new Runner().run(args);

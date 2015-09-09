@@ -16,7 +16,7 @@ public class Disk {
     /**
      * Outputs a generated JavaFile
      * @param file the file to output
-     * @throws IOException
+     * @throws IOException if write to the file failes
      */
     public static void outputFile(JavaFile file) throws IOException {
         if (!isPreview()) {
@@ -42,7 +42,7 @@ public class Disk {
     }
 
     /**
-     * Is the tool running in preview mode?
+     * @return Is the tool running in preview mode?
      */
     public static boolean isPreview() {
         return StringUtils.isEmpty(MetaData.instance.getOutDir());
