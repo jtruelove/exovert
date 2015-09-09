@@ -36,6 +36,7 @@ dependencies {
     compile "com.englishtown.vertx:vertx-cassandra:3.0.0"
     compile "com.englishtown.vertx:vertx-cassandra-mapping:3.0.0"
     compile "com.squareup:javapoet:1.2.0"
+    compile "io.vertx:vertx-codegen:3.0.0"
     testCompile "junit:junit:4.11"
     testCompile "io.vertx:vertx-unit:3.0.0"
 }

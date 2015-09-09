@@ -196,6 +196,8 @@ public class CrudCreator {
 
     /**
      * Entry point.
+     * @param args command-line args
+     * @throws Exception runtime errors
      */
     public static void main(String [] args) throws Exception {
         new CrudCreator().run(args);

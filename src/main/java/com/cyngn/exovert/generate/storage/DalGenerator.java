@@ -11,14 +11,18 @@ import com.englishtown.vertx.cassandra.mapping.VertxMappingManager;
 import com.englishtown.vertx.cassandra.mapping.impl.DefaultVertxMappingManager;
 import com.google.common.base.CaseFormat;
 import com.google.common.util.concurrent.FutureCallback;
-import com.squareup.javapoet.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -30,7 +34,7 @@ public class DalGenerator {
     /**
      * Kicks off DAL generation.
      * @param tables the cassandra table meta data
-     * @throws IOException
+     * @throws IOException if write to file fails
      */
     public static void generate(Collection<TableMetadata> tables) throws IOException {
         String namespaceToUse = MetaData.instance.getDalNamespace();
