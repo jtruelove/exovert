@@ -27,7 +27,7 @@ public class UDTGenerator {
      * Kicks off table generation.
      *
      * @param userTypes the cassandra Udt meta data
-     * @throws IOException
+     * @throws IOException if write to a file fails
      */
     public static void generate(Collection<UserType> userTypes) throws IOException {
         String namespaceToUse = MetaData.instance.getUdtNamespace();

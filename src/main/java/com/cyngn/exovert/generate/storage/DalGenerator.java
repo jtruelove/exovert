@@ -30,7 +30,7 @@ public class DalGenerator {
     /**
      * Kicks off DAL generation.
      * @param tables the cassandra table meta data
-     * @throws IOException
+     * @throws IOException exceptions writing to files
      */
     public static void generate(Collection<TableMetadata> tables) throws IOException {
         String namespaceToUse = MetaData.instance.getDalNamespace();
