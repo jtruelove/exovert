@@ -1,5 +1,7 @@
 package com.cyngn.exovert.generate.server;
 
+import com.cyngn.exovert.generate.server.config.ConfTemplate;
+import com.cyngn.exovert.generate.server.config.LogbackTemplate;
 import com.cyngn.exovert.util.Disk;
 import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;
@@ -72,6 +74,11 @@ public class ServerGenerator {
         JavaFile javaFile = JavaFile.builder(namespaceToUse, serverBuilder.build()).build();
 
         Disk.outputFile(javaFile);
+
+        //setup the logback file the server needs to run
+        Disk.outputFile(LogbackTemplate.TEMPLATE, "src/main/resources/logback.xml");
+        // output a default conf file
+        Disk.outputFile(ConfTemplate.TEMPLATE, "conf.json");
     }
 
     private static MethodSpec getStartupMethod() {

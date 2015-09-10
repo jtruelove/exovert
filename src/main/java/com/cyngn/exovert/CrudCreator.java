@@ -1,9 +1,8 @@
 package com.cyngn.exovert;
 
-
-import com.cyngn.exovert.generate.build.GradleGenerator;
 import com.cyngn.exovert.generate.entity.TableGenerator;
 import com.cyngn.exovert.generate.entity.UDTGenerator;
+import com.cyngn.exovert.generate.project.ProjectGenerator;
 import com.cyngn.exovert.generate.rest.RestGenerator;
 import com.cyngn.exovert.generate.server.ServerGenerator;
 import com.cyngn.exovert.generate.storage.DalGenerator;
@@ -92,7 +91,7 @@ public class CrudCreator {
             DalGenerator.generate(ksm.getTables());
             if(optionSet.has(rest) || optionSet.has(server)) { RestGenerator.generate(ksm.getTables()); }
             if(optionSet.has(server)) { ServerGenerator.generate(ksm.getTables()); }
-            if(optionSet.has(gradle)) { GradleGenerator.generate(name.value(optionSet)); }
+            if(optionSet.has(gradle)) { ProjectGenerator.generate(name.value(optionSet)); }
         } catch (IOException ex) {
             System.out.println("Generation failed: ex " + ex.getMessage());
             ex.printStackTrace();

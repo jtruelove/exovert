@@ -5,8 +5,8 @@ package com.cyngn.exovert.generate.project;
  *
  * @author truelove@cyngn.com (Jeremy Truelove) 9/9/15
  */
-public class Template {
-    public static String data = "buildscript {\n" +
+public class GradleTemplate {
+    public static String TEMPLATE = "buildscript {\n" +
             "    repositories { jcenter() }\n" +
             "    dependencies {\n" +
             "        classpath 'com.github.jengelman.gradle.plugins:shadow:1.1.1'\n" +
@@ -17,7 +17,6 @@ public class Template {
             "apply plugin: 'com.github.johnrengelman.shadow'\n" +
             "\n" +
             "version = '0.1.0'\n" +
-            "serverClass = '%s'\n" +
             "group = '%s'\n" +
             "archivesBaseName = '%s'\n" +
             "\n" +
@@ -45,6 +44,7 @@ public class Template {
             "    compile \"com.englishtown.vertx:vertx-cassandra-mapping:3.0.0\"\n" +
             "    compile \"ch.qos.logback:logback-classic:1.0.13\"\n" +
             "    compile \"ch.qos.logback:logback-core:1.0.13\"\n" +
+            "    compile \"io.vertx:vertx-codegen:3.0.0\"\n" +
             "    testCompile \"junit:junit:4.11\"\n" +
             "    testCompile \"io.vertx:vertx-unit:3.0.0\"\n" +
             "}\n" +
@@ -79,7 +79,7 @@ public class Template {
             "    classifier = 'fat'\n" +
             "    manifest {\n" +
             "        attributes 'Main-Class': 'io.vertx.core.Starter'\n" +
-            "        attributes 'Main-Verticle': serverClass\n" +
+            "        attributes 'Main-Verticle': '%s'\n" +
             "    }\n" +
             "    mergeServiceFiles {\n" +
             "        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'\n" +

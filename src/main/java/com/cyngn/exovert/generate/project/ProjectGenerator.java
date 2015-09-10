@@ -10,7 +10,7 @@ import java.io.IOException;
  *
  * @author truelove@cyngn.com (Jeremy Truelove) 9/9/15
  */
-public class GradleGenerator {
+public class ProjectGenerator {
 
     /**
      * Handles generating project gradle files
@@ -20,7 +20,7 @@ public class GradleGenerator {
      */
     public static void generate(String projectName) throws IOException {
         String namespace = MetaData.instance.getNamespace();
-        String file = String.format(Template.data, namespace + ".Server", namespace, projectName);
+        String file = String.format(GradleTemplate.TEMPLATE, namespace, projectName, namespace + ".Server");
 
         Disk.outputFile(file, "build.gradle");
     }
