@@ -1,6 +1,7 @@
 package com.cyngn.exovert;
 
 
+import com.cyngn.exovert.generate.build.GradleGenerator;
 import com.cyngn.exovert.generate.entity.TableGenerator;
 import com.cyngn.exovert.generate.entity.UDTGenerator;
 import com.cyngn.exovert.generate.rest.RestGenerator;
@@ -48,6 +49,8 @@ public class CrudCreator {
     private OptionSpec create;
     private OptionSpec server;
     private OptionSpec<String> rest;
+    private OptionSpec gradle;
+    private OptionSpec<String> name;
     private OptionSpec help;
 
     // the primary commands users can select
@@ -89,6 +92,7 @@ public class CrudCreator {
             DalGenerator.generate(ksm.getTables());
             if(optionSet.has(rest) || optionSet.has(server)) { RestGenerator.generate(ksm.getTables()); }
             if(optionSet.has(server)) { ServerGenerator.generate(ksm.getTables()); }
+            if(optionSet.has(gradle)) { GradleGenerator.generate(name.value(optionSet)); }
         } catch (IOException ex) {
             System.out.println("Generation failed: ex " + ex.getMessage());
             ex.printStackTrace();
@@ -134,6 +138,11 @@ public class CrudCreator {
         OptionParser parser = new OptionParser();
         create = parser.acceptsAll(asList("create", "c"), "create the files on disk");
         preview = parser.acceptsAll(asList("preview", "p"), "output all the java files to the console, don't create files");
+        name = parser.acceptsAll(asList("name", "n"), "the optional project name")
+                .requiredIf(gradle)
+                .withRequiredArg()
+                .ofType(String.class);
+        gradle = parser.acceptsAll(asList("gradle", "g"), "create a starter gradle file");
         keyspace = parser.acceptsAll(asList("keyspace", "k"), "the keyspace from which to read")
                 .requiredIf(create, preview)
                 .withRequiredArg()
