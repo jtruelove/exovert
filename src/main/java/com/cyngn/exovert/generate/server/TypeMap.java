@@ -1,5 +1,6 @@
 package com.cyngn.exovert.generate.server;
 
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
 
 /**
@@ -32,6 +33,16 @@ public interface TypeMap {
      * @param typeName - type name
      */
     void registerType(String type, TypeName typeName);
+
+
+    /**
+     * Get the type conversion code block to convert {@link String}
+     * to type
+     * @param type - type String
+     * @param cb - code block
+     * @return - returns CodeBlock decorated with conversion code.
+     */
+    public CodeBlock getTypeConverter(String type, CodeBlock cb);
 
     /**
      * Returns the default implementation of {@link TypeMap}

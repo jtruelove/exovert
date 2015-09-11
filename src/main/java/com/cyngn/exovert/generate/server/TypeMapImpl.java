@@ -1,10 +1,12 @@
 package com.cyngn.exovert.generate.server;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Implementation of {@link TypeMap}
@@ -16,7 +18,8 @@ import java.util.Map;
  */
 public class TypeMapImpl implements TypeMap {
 
-    Map<String, TypeName> typeToClassMapping = new HashMap<>();
+    private Map<String, TypeName> typeToClassMapping = new HashMap<>();
+    private Map<String, Function<CodeBlock, CodeBlock>> typeConverterMapping  = new HashMap<>();
 
     private void bootstrap() {
 
@@ -43,9 +46,62 @@ public class TypeMapImpl implements TypeMap {
         typeToClassMapping.put("Double", ClassName.get("java.lang", "Double"));
 
 
+        typeToClassMapping.put("Date", ClassName.get("org.joda.time", "DateTime"));
         typeToClassMapping.put("String", ClassName.get("java.lang", "String"));
 
+        //converters for type
+        // for boolean
+        typeConverterMapping.put("boolean", cb ->
+                CodeBlock.builder().add("$T.parseBoolean(", typeToClassMapping.get("Boolean")).add(cb).addStatement(")").build());
+        typeConverterMapping.put("Boolean", cb ->
+                CodeBlock.builder().add("$T.parseBoolean(", typeToClassMapping.get("Boolean")).add(cb).addStatement(")").build());
+
+        // for byte
+        typeConverterMapping.put("byte", cb ->
+                CodeBlock.builder().add("$T.parseByte(", typeToClassMapping.get("Byte")).add(cb).addStatement(")").build());
+        typeConverterMapping.put("Byte", cb ->
+                CodeBlock.builder().add("$T.parseByte(", typeToClassMapping.get("Byte")).add(cb).addStatement(")").build());
+
+        // for short
+        typeConverterMapping.put("short", cb ->
+                CodeBlock.builder().add("$T.parseShort(", typeToClassMapping.get("Short")).add(cb).addStatement(")").build());
+        typeConverterMapping.put("Short", cb ->
+                CodeBlock.builder().add("$T.parseShort(", typeToClassMapping.get("Short")).add(cb).addStatement(")").build());
+
+        // for integer
+        typeConverterMapping.put("int", cb ->
+                CodeBlock.builder().add("$T.parseInt(", typeToClassMapping.get("Integer")).add(cb).addStatement(")").build());
+        typeConverterMapping.put("Integer", cb ->
+                CodeBlock.builder().add("$T.parseInt(", typeToClassMapping.get("Integer")).add(cb).addStatement(")").build());
+
+        // for float
+        typeConverterMapping.put("float", cb ->
+                CodeBlock.builder().add("$T.parseFloat(", typeToClassMapping.get("Float")).add(cb).addStatement(")").build());
+        typeConverterMapping.put("Float", cb ->
+                CodeBlock.builder().add("$T.parseFloat(", typeToClassMapping.get("Float")).add(cb).addStatement(")").build());
+
+        // for double
+        typeConverterMapping.put("double", cb ->
+                CodeBlock.builder().add("$T.parseDouble(", typeToClassMapping.get("Double")).add(cb).addStatement(")").build());
+        typeConverterMapping.put("Double", cb ->
+                CodeBlock.builder().add("$T.parseDouble(", typeToClassMapping.get("Double")).add(cb).addStatement(")").build());
+
+        // for double
+        typeConverterMapping.put("char", cb ->
+                CodeBlock.builder().add(cb+".charAt(0)").addStatement(")").build());
+        typeConverterMapping.put("Character", cb ->
+                CodeBlock.builder().add(cb+".charAt(0)").addStatement(")").build());
+
+        // for Date
+        typeConverterMapping.put("Date", cb ->
+                CodeBlock.builder().add("new $T(", typeToClassMapping.get("Date")).add(cb).addStatement(")").build());
+
+        // for String
+        typeConverterMapping.put("String", str ->
+                CodeBlock.builder().addStatement("$L", str).build());
+
         //TODO: add list, map types.
+        //Conversion will be tricky, unless we define our own serialization and use it across the board.
     }
 
     public TypeMapImpl() {
@@ -64,6 +120,15 @@ public class TypeMapImpl implements TypeMap {
     @Override
     public void registerType(String type, TypeName typeName) {
         typeToClassMapping.put(type, typeName);
+    }
+
+    @Override
+    public CodeBlock getTypeConverter(String type, CodeBlock cb) {
+        if (!typeConverterMapping.containsKey(type)) {
+            throw new IllegalArgumentException("No converter found for type: " + type);
+        }
+
+        return typeConverterMapping.get(type).apply(cb);
     }
 }
 
