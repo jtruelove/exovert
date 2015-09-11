@@ -1,12 +1,16 @@
 package com.cyngn.exovert.generate.rest;
 
 import com.cyngn.exovert.generate.entity.EntityGeneratorHelper;
+import com.cyngn.exovert.generate.server.TypeMap;
 import com.cyngn.exovert.util.Disk;
 import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;
+import com.cyngn.exovert.util.Udt;
 import com.cyngn.vertx.web.HttpHelper;
 import com.cyngn.vertx.web.JsonUtil;
 import com.cyngn.vertx.web.RestApi;
+import com.datastax.driver.core.ColumnMetadata;
+import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.TableMetadata;
 import com.google.common.base.CaseFormat;
 import com.squareup.javapoet.ClassName;
@@ -66,6 +70,7 @@ public class RestGenerator {
             restBuilder.addMethod(getDelete(rawName));
             restBuilder.addMethod(getGet(rawName));
             restBuilder.addMethod(getSupportedApi());
+            restBuilder.addMethod(getQueryConverter(table));
 
             JavaFile javaFile = JavaFile.builder(namespaceToUse, restBuilder.build()).build();
             Disk.outputFile(javaFile);
@@ -74,7 +79,7 @@ public class RestGenerator {
 
     private static void createUtilClass(String namespaceToUse) throws IOException {
         TypeSpec.Builder utilBuilder = TypeSpec.classBuilder("RestUtil").addModifiers(Modifier.PUBLIC)
-            .addJavadoc("Central place to put shared functions for REST call processing.\n")
+            .addJavadoc(MetaData.getJavaDocHeader("Central place to put shared functions for REST call processing."))
             .addMethod(getIsValidMethod());
         JavaFile javaFile = JavaFile.builder(namespaceToUse, utilBuilder.build()).build();
         Disk.outputFile(javaFile);
@@ -83,7 +88,7 @@ public class RestGenerator {
     private static MethodSpec getConstructor(String dalName, List<String> primaryKey) {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(ClassName.get(MetaData.instance.getDalNamespace(), dalName), "storage")
+                .addParameter(ClassName.get(MetaData.instance.getDalNamespace(), dalName), "storage", Modifier.FINAL)
                 .addStatement("this.storage = $L", "storage")
                 .addCode("$L = new $T[]", PRIMARY_KEY_FIELD, String.class).beginControlFlow("");
 
@@ -131,7 +136,7 @@ public class RestGenerator {
     private static MethodSpec getSave(String entityName) {
         return MethodSpec.methodBuilder("save")
                 .addJavadoc(getJavaDoc("Save"), ClassName.get(MetaData.instance.getTableNamespace(), entityName))
-                .addParameter(RoutingContext.class, "context")
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
                 .addStatement("$T request = context.request()", HttpServerRequest.class)
                 .addModifiers(Modifier.PUBLIC)
                 .beginControlFlow("if(request.isEnded())")
@@ -147,9 +152,10 @@ public class RestGenerator {
 
         return MethodSpec.methodBuilder("save")
                 .addJavadoc(getJavaDoc("Save") +
-                    "\nNOTE: this method is left intentionally package protected to allow you to call it in a different way\n", clazz)
-                .addParameter(RoutingContext.class, "context")
-                .addParameter(Buffer.class, "body")
+                    "\nNOTE: this method is left intentionally package protected to allow you to call it in a different way\n",
+                        clazz)
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
+                .addParameter(Buffer.class, "body", Modifier.FINAL)
                 .addStatement("$T entity = $T.parseJsonToObject(body.toString(), $L.class)", clazz, JsonUtil.class, entityName)
                 .beginControlFlow("if(entity == null)")
                 .addStatement("$T.processErrorResponse($S + body, context.response(), $T.BAD_REQUEST.code())",
@@ -161,12 +167,14 @@ public class RestGenerator {
                 .beginControlFlow("if(result.succeeded)")
                 .addStatement("$T.processResponse(context.response())", HttpHelper.class)
                 .nextControlFlow("else if(result.error != null)")
-                .addStatement("String error = $S + entity.toString() + $S + result.error.getMessage()", "Could not persist ", ", error: ")
+                .addStatement("String error = $S + entity.toString() + $S + result.error.getMessage()",
+                        "Could not persist ", ", error: ")
                 .addStatement("logger.error($S,  error)", "save - {}")
                 .addStatement("$T.processErrorResponse(error, context.response(), $T.INTERNAL_SERVER_ERROR.code())",
                         HttpHelper.class, HttpResponseStatus.class)
                 .nextControlFlow("else")
-                .addStatement("String error = $S + entity.toString() + $S + result.errorMessage", "Could not persist ", ", error: ")
+                .addStatement("String error = $S + entity.toString() + $S + result.errorMessage", "Could not persist ",
+                        ", error: ")
                 .addStatement("logger.error($S,  error)", "save - {}")
                 .addStatement("$T.processErrorResponse(error, context.response(), $T.BAD_REQUEST.code())",
                         HttpHelper.class, HttpResponseStatus.class)
@@ -181,23 +189,28 @@ public class RestGenerator {
 
         return MethodSpec.methodBuilder("delete")
                 .addJavadoc(getJavaDoc("Delete"), clazz)
-                .addParameter(RoutingContext.class, "context")
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
                 .addModifiers(Modifier.PUBLIC)
                 .addCode("// if query params aren't valid a HttpResponseStatus.BAD_REQUEST will be sent with the missing field\n")
-                .addStatement("$T queryKey = $T.isValid(context.request(), primaryKey)", Object[].class,
+                .addStatement("$T queryKey = null", Object[].class)
+                .beginControlFlow("if($T.isValid(context.request(), primaryKey))",
                         ClassName.get(MetaData.instance.getRestNamespace(), "RestUtil"))
+                .addStatement("queryKey = convertQueryString($L)", "context")
+                .endControlFlow()
                 .beginControlFlow("\nif(queryKey != null)")
                 .addCode("storage.delete(result -> ", Consumer.class)
                 .beginControlFlow("")
                 .beginControlFlow("if(result.succeeded)")
                 .addStatement("$T.processResponse(context.response())", HttpHelper.class)
                 .nextControlFlow("else if (result.error != null)")
-                .addStatement("String error = $S + $T.join(queryKey, \",\") + $S + result.error.getMessage()", "Could not delete key: {", StringUtils.class, "}, error: ")
+                .addStatement("String error = $S + context.request().uri() + $S + result.error.getMessage()",
+                        "Could not DELETE with query: ", " error: ")
                 .addStatement("logger.error($S,  error)", "delete - {}")
                 .addStatement("$T.processErrorResponse(error, context.response(), $T.INTERNAL_SERVER_ERROR.code())",
                         HttpHelper.class, HttpResponseStatus.class)
                 .nextControlFlow("else")
-                .addStatement("String error = $S + StringUtils.join(queryKey, \",\") + $S + result.errorMessage", "Could not delete key: {", "}, error: ")
+                .addStatement("String error = $S + context.request().uri() + $S + result.error.getMessage()",
+                        "Could not DELETE with query: ", " error: ")
                 .addStatement("logger.error($S, error)", "delete - {}")
                 .addStatement("$T.processErrorResponse(error, context.response(), $T.BAD_REQUEST.code())",
                         HttpHelper.class, HttpResponseStatus.class)
@@ -212,23 +225,31 @@ public class RestGenerator {
 
         return MethodSpec.methodBuilder("get")
                 .addJavadoc(getJavaDoc("Get"), clazz)
-                .addParameter(RoutingContext.class, "context")
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
                 .addModifiers(Modifier.PUBLIC)
                 .addCode("// if query params aren't valid a HttpResponseStatus.BAD_REQUEST will be sent with the missing field\n")
-                .addStatement("$T queryKey = $T.isValid(context.request(), primaryKey)", Object[].class,
+                .addStatement("$T queryKey = null", Object[].class)
+                .beginControlFlow("if($T.isValid(context.request(), primaryKey))",
                         ClassName.get(MetaData.instance.getRestNamespace(), "RestUtil"))
+                .addStatement("queryKey = convertQueryString($L)", "context")
+                .endControlFlow()
                 .beginControlFlow("\nif(queryKey != null)")
                 .addCode("storage.get(result -> ", Consumer.class)
                 .beginControlFlow("")
                 .beginControlFlow("if(result.succeeded)")
+                .beginControlFlow("if(result.value != null)")
                 .addStatement("$T.processResponse(result.value, context.response())", HttpHelper.class)
+                .nextControlFlow("else")
+                .addStatement("$T.processResponse(context.response(), $T.NOT_FOUND.code())", HttpHelper.class,
+                        HttpResponseStatus.class)
+                .endControlFlow()
                 .nextControlFlow("else if(result.error != null)")
-                .addStatement("String error = $S + StringUtils.join(queryKey, \",\") + $S + result.error.getMessage()", "Could not get key: {", "}, error: ")
+                .addStatement("String error = $S + context.request().uri() + $S + result.error.getMessage()", "Could not GET with query: ", " error: ")
                 .addStatement("logger.error($S,  error)", "get - {}")
                 .addStatement("$T.processErrorResponse(error, context.response(), $T.INTERNAL_SERVER_ERROR.code())",
                         HttpHelper.class, HttpResponseStatus.class)
                 .nextControlFlow("else")
-                .addStatement("String error = $S + $T.join(queryKey, \",\") + $S + result.errorMessage", "Could not get key: {", StringUtils.class, "}, error: ")
+                .addStatement("String error = $S + context.request().uri() + $S + result.error.getMessage()", "Could not GET with query: ", " error: ")
                 .addStatement("logger.error($S, error)", "get - {}")
                 .addStatement("$T.processErrorResponse(error, context.response(), $T.BAD_REQUEST.code())",
                         HttpHelper.class, HttpResponseStatus.class)
@@ -236,7 +257,6 @@ public class RestGenerator {
                 .endControlFlow(", queryKey)")
                 .endControlFlow()
                 .build();
-
     }
 
     private static String getJavaDoc(String action) {
@@ -253,11 +273,11 @@ public class RestGenerator {
     }
 
     private static MethodSpec getIsValidMethod() {
-        return MethodSpec.methodBuilder("isValid").addModifiers(Modifier.PUBLIC, Modifier.STATIC).returns(Object[].class)
+        return MethodSpec.methodBuilder("isValid").addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .returns(Boolean.class)
                 .addJavadoc("Does the query string of this request contain the full primary key?\n")
-                .addParameter(HttpServerRequest.class, "request")
-                .addParameter(String[].class, PRIMARY_KEY_FIELD)
-                .addStatement("$T queryKey = new Object[$L]", Object[].class, PRIMARY_KEY_FIELD + ".length")
+                .addParameter(HttpServerRequest.class, "request", Modifier.FINAL)
+                .addParameter(String[].class, PRIMARY_KEY_FIELD, Modifier.FINAL)
                 .addStatement("$T error = null", String.class)
                 .beginControlFlow("for(int i = 0; i < $L.length; i++)", PRIMARY_KEY_FIELD)
                 .addStatement("$T key = primaryKey[i]", String.class)
@@ -267,11 +287,47 @@ public class RestGenerator {
                 .addStatement("$T.processErrorResponse(error, request.response(), $T.BAD_REQUEST.code())",
                         HttpHelper.class, HttpResponseStatus.class)
                 .addStatement("break")
-                .nextControlFlow("else")
-                .addStatement("queryKey[i] = value")
                 .endControlFlow()
                 .endControlFlow()
-                .addStatement("return $T.isEmpty(error) ? $L : null", StringUtils.class, "queryKey")
+                .addStatement("return $T.isEmpty(error)", StringUtils.class)
                 .build();
+    }
+
+    private static MethodSpec getQueryConverter(TableMetadata table) {
+
+        List<ColumnMetadata> keys = table.getPrimaryKey();
+        int numKeys = keys.size();
+        TypeMap typeToConverters = TypeMap.create();
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("convertQueryString")
+            .addJavadoc("Convert query params to their Cassandra type.\n")
+            .addParameter(RoutingContext.class, "context", Modifier.FINAL)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(Object[].class)
+            .addStatement("$T request = context.request()", HttpServerRequest.class)
+            .addCode("// if query params aren't valid a HttpResponseStatus.BAD_REQUEST will be sent with the missing field\n")
+            .addStatement("$T values = new Object[$L]", Object[].class, keys.size());
+
+        builder.beginControlFlow("try");
+        for(int i = 0; i < numKeys; i++) {
+            ColumnMetadata column = keys.get(i);
+            if(column.getType().equals(DataType.text())) {
+                builder.addStatement("values[$L] = request.getParam($S)", i, column.getName());
+            } else if (Udt.instance.isUdt(column.getType())) {
+                throw new IllegalArgumentException("We don't currently support UDT primary keys in the query string, field: "
+                        + column.getName());
+            } else {
+                builder.addCode("values[$L] = ", i)
+                        .addCode(typeToConverters.getTypeConverter(column.getType().asJavaClass().getSimpleName(),
+                                CodeBlock.builder().add("request.getParam($S)", column.getName()).build()));
+            }
+        }
+
+        return builder.nextControlFlow("catch (Exception ex)")
+               .addStatement("$T.processErrorResponse(ex.getMessage(), context.response(), $T.BAD_REQUEST.code())",
+                       HttpHelper.class, HttpResponseStatus.class)
+               .addStatement("return null")
+               .endControlFlow()
+               .addStatement("return values").build();
     }
 }

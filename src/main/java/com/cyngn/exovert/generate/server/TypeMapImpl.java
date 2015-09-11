@@ -86,7 +86,13 @@ public class TypeMapImpl implements TypeMap {
         typeConverterMapping.put("Double", cb ->
                 CodeBlock.builder().add("$T.parseDouble(", typeToClassMapping.get("Double")).add(cb).addStatement(")").build());
 
-        // for double
+        // for long
+        typeConverterMapping.put("long", cb ->
+                CodeBlock.builder().add("$T.parseLong(", typeToClassMapping.get("Long")).add(cb).addStatement(")").build());
+        typeConverterMapping.put("Long", cb ->
+                CodeBlock.builder().add("$T.parseLong(", typeToClassMapping.get("Long")).add(cb).addStatement(")").build());
+
+        // for char
         typeConverterMapping.put("char", cb ->
                 CodeBlock.builder().add(cb+".charAt(0)").addStatement(")").build());
         typeConverterMapping.put("Character", cb ->
