@@ -65,11 +65,10 @@ public class ServerGenerator {
         serverBuilder.addMethod(getStartServer());
         serverBuilder.addMethod(getStopMethod());
 
-        serverBuilder.addJavadoc(MetaData.instance.getJavaDocHeader("Simple server that registers all {@link " +
+        serverBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader("Simple server that registers all {@link " +
                 ClassName.get(RestApi.class) + "} for CRUD operations." +
                 "\n\nto build: ./gradlew clean shadowJar\n" +
-                "to run: java -jar build/libs/[project-name]-fat.jar -conf [your_conf.json]"
-        ));
+                "to run: java -jar build/libs/[project-name]-fat.jar -conf [your_conf.json]", MetaData.instance.getUpdateTime()));
 
         JavaFile javaFile = JavaFile.builder(namespaceToUse, serverBuilder.build()).build();
 

@@ -58,8 +58,8 @@ public class DalGenerator {
             dalBuilder.addMethod(getDeleteByKey(entityTable));
             dalBuilder.addMethod(getEntityGet(entityTable));
 
-            dalBuilder.addJavadoc(MetaData.getJavaDocHeader("DAL for Cassandra entity - {@link " +
-                    ClassName.get(MetaData.instance.getTableNamespace(), rawName) + "}"));
+            dalBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader("DAL for Cassandra entity - {@link " +
+                    ClassName.get(MetaData.instance.getTableNamespace(), rawName) + "}", MetaData.instance.getUpdateTime()));
 
             dalBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(namespaceToUse, "CommonDal"), entityTable));
 
@@ -106,7 +106,7 @@ public class DalGenerator {
                         .addParameter(parameterizingType, "entity", Modifier.FINAL)
                         .addParameter(getOnComplete(), "onComplete", Modifier.FINAL)
                         .build())
-                .addJavadoc(MetaData.getJavaDocHeader("Common interface for all DAL classes"))
+                .addJavadoc(GeneratorHelper.getJavaDocHeader("Common interface for all DAL classes", MetaData.instance.getUpdateTime()))
                 .build();
 
         JavaFile javaFile = JavaFile.builder(namespace, commonDal).build();

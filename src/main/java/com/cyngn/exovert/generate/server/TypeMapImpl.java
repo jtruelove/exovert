@@ -103,8 +103,8 @@ public class TypeMapImpl implements TypeMap {
                 CodeBlock.builder().add("new $T(", typeToClassMapping.get("Date")).add(cb).addStatement(")").build());
 
         // for String
-        typeConverterMapping.put("String", str ->
-                CodeBlock.builder().addStatement("$L", str).build());
+        typeConverterMapping.put("String", cb ->
+                CodeBlock.builder().add("$L", cb).addStatement(")").build());
 
         //TODO: add list, map types.
         //Conversion will be tricky, unless we define our own serialization and use it across the board.

@@ -1,6 +1,7 @@
 package com.cyngn.exovert.generate.entity;
 
 import com.cyngn.exovert.util.Disk;
+import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.UserType;
@@ -42,7 +43,7 @@ public class UDTGenerator {
 
             addFields(udtClassBuilder, userType, name);
 
-            udtClassBuilder.addJavadoc(MetaData.getJavaDocHeader("UDT class for Cassandra - " + rawName));
+            udtClassBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader("UDT class for Cassandra - " + rawName, MetaData.instance.getUpdateTime()));
 
             JavaFile javaFile = JavaFile.builder(namespaceToUse, udtClassBuilder.build()).build();
 

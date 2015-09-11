@@ -16,6 +16,12 @@ public class Api {
     public String name;
 
     /**
+     * API documentation
+     */
+    @JsonProperty
+    public String documentation;
+
+    /**
      * Routing path for the api
      */
     @JsonProperty

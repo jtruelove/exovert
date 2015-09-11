@@ -42,7 +42,7 @@ public interface TypeMap {
      * @param cb - code block
      * @return - returns CodeBlock decorated with conversion code.
      */
-    public CodeBlock getTypeConverter(String type, CodeBlock cb);
+    CodeBlock getTypeConverter(String type, CodeBlock cb);
 
     /**
      * Returns the default implementation of {@link TypeMap}

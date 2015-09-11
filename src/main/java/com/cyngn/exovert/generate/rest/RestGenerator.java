@@ -58,8 +58,8 @@ public class RestGenerator {
 
             restBuilder.addField(GeneratorHelper.getLogger(namespaceToUse, name));
 
-            restBuilder.addJavadoc(MetaData.getJavaDocHeader("REST Api for Cassandra entity - {@link " +
-                    ClassName.get(MetaData.instance.getTableNamespace(), rawName) + "}"));
+            restBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader("REST Api for Cassandra entity - {@link " +
+                    ClassName.get(MetaData.instance.getTableNamespace(), rawName) + "}", MetaData.instance.getUpdateTime()));
 
             restBuilder.addSuperinterface(RestApi.class);
             addMemberVars(tableName, dalName, restBuilder);
@@ -79,7 +79,8 @@ public class RestGenerator {
 
     private static void createUtilClass(String namespaceToUse) throws IOException {
         TypeSpec.Builder utilBuilder = TypeSpec.classBuilder("RestUtil").addModifiers(Modifier.PUBLIC)
-            .addJavadoc(MetaData.getJavaDocHeader("Central place to put shared functions for REST call processing."))
+            .addJavadoc(GeneratorHelper.getJavaDocHeader
+                    ("Central place to put shared functions for REST call processing.", MetaData.instance.getUpdateTime()))
             .addMethod(getIsValidMethod());
         JavaFile javaFile = JavaFile.builder(namespaceToUse, utilBuilder.build()).build();
         Disk.outputFile(javaFile);
