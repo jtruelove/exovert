@@ -244,7 +244,7 @@ public class InterfaceMethodGenerator {
                 .addStatement("final $T validationResult = $L.validate()", ValidationResult.class,
                         CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, RestGeneratorHelper.getRequestObjectName(api.name)))
                 .beginControlFlow("if (ValidationResult.SUCCESS.equals(validationResult))")
-                .addStatement("process($L)", RestGeneratorHelper.getRequestVariableName(api.name))
+                .addStatement("process(request, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
                 .nextControlFlow("else")
                 .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
                 .endControlFlow()
@@ -258,7 +258,7 @@ public class InterfaceMethodGenerator {
      * Generated code looks like
      * </p>
      * <pre>
-     *     public abstract void process(final CreateRequest request);
+     *     public abstract void process(final HttpServerRequest request, final CreateRequest request);
      * </pre>
      * @param api       - api Object
      * @param namespace - package namespace
@@ -267,8 +267,9 @@ public class InterfaceMethodGenerator {
     static MethodSpec getProcessMethodSpec(Api api, String namespace) {
         return MethodSpec.methodBuilder("process")
                 .addJavadoc("Processes the request\n")
+                .addParameter(HttpServerRequest.class, "request", Modifier.FINAL)
                 .addParameter(ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)),
-                        "request", Modifier.FINAL)
+                        RestGeneratorHelper.getRequestVariableName(api.name), Modifier.FINAL)
                 .addModifiers(Modifier.ABSTRACT)
                 .addModifiers(Modifier.PUBLIC).build();
     }

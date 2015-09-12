@@ -35,8 +35,8 @@ public class InterfaceClassGenerator {
      * Generated code looks like
      * </p>
      * <pre>
-     * public abstract class GetApi implements RestApi {
-     *     private static final Logger logger = LoggerFactory.getLogger(GetApi.class);
+     * public abstract class AbstractGetApi implements RestApi {
+     *     private static final Logger logger = LoggerFactory.getLogger(AbstractGetApi.class);
      *     private static final String GET_API_PATH = "/get";
      *     private final RestApi.RestApiDescriptor[] supportedApi =  {
      *         new RestApi.RestApiDescriptor(HttpMethod.GET, GET_API_PATH, this::handleGet),

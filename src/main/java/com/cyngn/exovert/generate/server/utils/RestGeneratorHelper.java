@@ -12,8 +12,6 @@ import java.nio.file.Path;
  */
 public class RestGeneratorHelper {
 
-
-
     public static Path getGeneratedSourceDirectoryPath() {
         return FileSystems.getDefault().getPath(Constants.BUILD_DIRECTORY, Constants.GENERATED_SRC_DIRECTORY);
     }
@@ -27,7 +25,8 @@ public class RestGeneratorHelper {
     }
 
     public static String getApiName(String api) {
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, api) + Constants.API_NAME_SUFFIX;
+        return Constants.API_NAME_PREFIX + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, api)
+                + Constants.API_NAME_SUFFIX;
     }
 
     public static String getRequestObjectName(String apiName) {

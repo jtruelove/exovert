@@ -18,6 +18,7 @@ public class Constants {
     // class name constants
     public static final String REQUEST_CLASS_SUFFIX = "Request";
     public static final String RESPONSE_CLASS_SUFFIX = "Response";
+    public static final String API_NAME_PREFIX = "Abstract";
     public static final String API_NAME_SUFFIX = "Api";
 
     // method name constants
