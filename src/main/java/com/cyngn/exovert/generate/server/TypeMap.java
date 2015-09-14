@@ -20,7 +20,7 @@ public interface TypeMap {
      * TODO: support collections
      *
      * @param type - type string
-     * @return
+     * @return {@link TypeName}
      */
     TypeName getTypeName(String type);
 
@@ -47,7 +47,7 @@ public interface TypeMap {
     /**
      * Returns the default implementation of {@link TypeMap}
      *
-     * @return
+     * @return {@link TypeName}
      */
     static TypeMap create() {
         return new TypeMapImpl();

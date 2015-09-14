@@ -20,12 +20,12 @@
             }
           },
           {
-            "name": "Quantity",
+            "name": "quantity_in_ounces",
             "type": "Integer",
             "required": true
           },
           {
-            "name": "Price",
+            "name": "price",
             "type": "Double",
             "required": true
           },
@@ -65,12 +65,12 @@
             "required": true
           },
           {
-            "name": "Quantity",
+            "name": "quantity_in_ounces",
             "type": "Integer",
             "required": true
           },
           {
-            "name": "Price",
+            "name": "price",
             "type": "Double",
             "required": true
           },

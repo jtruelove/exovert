@@ -34,7 +34,7 @@ public class InterfaceGenerator {
     /**
      * Generates Request, Response and API classes.
      *
-     * @throws Exception
+     * @throws Exception on generation failure
      */
     public static void generate() throws Exception {
         InterfaceSpec spec = loadSpecFromFile("api.json");

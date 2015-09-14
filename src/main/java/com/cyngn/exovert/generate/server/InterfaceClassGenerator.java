@@ -5,6 +5,7 @@ import com.cyngn.exovert.generate.server.types.Field;
 import com.cyngn.exovert.generate.server.utils.Constants;
 import com.cyngn.exovert.generate.server.utils.RestGeneratorHelper;
 import com.cyngn.exovert.util.GeneratorHelper;
+import com.cyngn.exovert.util.MetaData;
 import com.cyngn.vertx.web.RestApi;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -97,10 +98,10 @@ public class InterfaceClassGenerator {
                 .addModifiers(Modifier.PUBLIC);
 
         for (Field field : fields) {
-            FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(typeMap.getTypeName(field.type), field.name)
+            FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(typeMap.getTypeName(field.type), RestGeneratorHelper.getFieldName(field.name))
                     .addModifiers(Modifier.PRIVATE)
                     .addAnnotation(AnnotationSpec.builder(JsonProperty.class)
-                            .addMember("value", "$S", CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.name)).build());
+                            .addMember("value", "$S", CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.name.toLowerCase())).build());
 
             if (!field.required) {
                 fieldSpecBuilder.addAnnotation(JsonIgnore.class);
@@ -154,7 +155,10 @@ public class InterfaceClassGenerator {
      * @return - {@link TypeSpec}
      */
     static TypeSpec getRequestTypeSpec(String name, List<Field> fields) {
-        return getTypeSpecBuilder(name, fields).addMethod(InterfaceMethodGenerator.getValidateMethodSpec(fields)).build();
+        return getTypeSpecBuilder(name, fields)
+                .addMethod(InterfaceMethodGenerator.getValidateMethodSpec(fields))
+                .addJavadoc(GeneratorHelper.getJavaDocHeader("Request type for " + name + " Api"))
+                .build();
     }
 
     /**
@@ -180,7 +184,9 @@ public class InterfaceClassGenerator {
      * @return - {@link TypeSpec}
      */
     static TypeSpec getResponseTypeSpec(String name, List<Field> fields) {
-        return getTypeSpecBuilder(name, fields).build();
+        return getTypeSpecBuilder(name, fields)
+                .addJavadoc(GeneratorHelper.getJavaDocHeader("Response type for " + name + " Api"))
+                .build();
     }
 
     /**

@@ -303,11 +303,11 @@ public class InterfaceMethodGenerator {
      * <pre>
      * @Override
      * public ValidationResult validate() {
-     *     if (name == null) { new ValidationResult(false, "name cannot be null");}
-     *     if (StringUtils.isEmpty(name)) { new ValidationResult(false, "name cannot be empty");}
-     *     if (name.length() > 1000) { new ValidationResult(false, "length of name exceeds the max allowed length of 1000");}
-     *     if (Quantity == null) { new ValidationResult(false, "Quantity cannot be null");}
-     *     if (Price == null) { new ValidationResult(false, "Price cannot be null");}
+     *     if (name == null) { new ValidationResult(false, "name cannot be null"); }
+     *     if (StringUtils.isEmpty(name)) { return new ValidationResult(false, "name cannot be empty"); }
+     *     if (name.length() > 1000) { return new ValidationResult(false, "length of name exceeds the max allowed length of 1000"); }
+     *     if (quantity == null) { return new ValidationResult(false, "Quantity cannot be null"); }
+     *     if (price == null) { return new ValidationResult(false, "Price cannot be null"); }
      *     return ValidationResult.SUCCESS;
      * }
      * </pre>
@@ -325,9 +325,9 @@ public class InterfaceMethodGenerator {
         for (Field field : fields) {
             if (field.required) {
                 // glue in validation for required fields
-                validationMethodBuilder.addCode("if ($N == null) ", field.name);
-                validationMethodBuilder.addCode("{ new ValidationResult(false, \"$N cannot be null\");}\n",
-                        field.name);
+                validationMethodBuilder.addCode("if ($N == null) ", RestGeneratorHelper.getFieldName(field.name));
+                validationMethodBuilder.addCode("{ return new ValidationResult(false, \"$N cannot be null\"); }\n",
+                        RestGeneratorHelper.getFieldName(field.name));
             }
 
             if (field.validation != null) {
@@ -337,15 +337,15 @@ public class InterfaceMethodGenerator {
                     if (field.type.equals("String")) {
                         if (field.validation.length.min > 0) {
                             // has length restriction
-                            validationMethodBuilder.addCode("if ($T.isEmpty($N)) ", StringUtils.class, field.name);
-                            validationMethodBuilder.addCode("{ new ValidationResult(false, \"$N cannot be empty\");}\n",
-                                    field.name);
+                            validationMethodBuilder.addCode("if ($T.isEmpty($N)) ", StringUtils.class, RestGeneratorHelper.getFieldName(field.name));
+                            validationMethodBuilder.addCode("{ return new ValidationResult(false, \"$N cannot be empty\"); }\n",
+                                    RestGeneratorHelper.getFieldName(field.name));
                         }
 
                         if (field.validation.length.max > 0) {
-                            validationMethodBuilder.addCode("if ($N.length() > $L) ", field.name, field.validation.length.max);
-                            validationMethodBuilder.addCode("{ new ValidationResult(false, \"length of $N exceeds the max allowed length of $L\");}\n",
-                                    field.name, field.validation.length.max);
+                            validationMethodBuilder.addCode("if ($N.length() > $L) ", RestGeneratorHelper.getFieldName(field.name), field.validation.length.max);
+                            validationMethodBuilder.addCode("{ return new ValidationResult(false, \"length of $N exceeds the max allowed length of $L\"); }\n",
+                                    RestGeneratorHelper.getFieldName(field.name), field.validation.length.max);
                         }
                     }
                 }
@@ -376,8 +376,8 @@ public class InterfaceMethodGenerator {
     static MethodSpec getSetMethodSpec(String name, String type) {
         return MethodSpec.methodBuilder(RestGeneratorHelper.getSetMethodName(name))
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(typeMap.getTypeName(type), name)
-                .addStatement("this.$N = $N", name, name)
+                .addParameter(typeMap.getTypeName(type), RestGeneratorHelper.getFieldName(name))
+                .addStatement("this.$N = $N", RestGeneratorHelper.getFieldName(name), RestGeneratorHelper.getFieldName(name))
                 .build();
     }
 
@@ -399,10 +399,10 @@ public class InterfaceMethodGenerator {
      * @return - {@link MethodSpec}
      */
     static MethodSpec getGetMethodSpec(String name, String type) {
-        return MethodSpec.methodBuilder(Constants.GET_METHOD_PREFIX + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, name))
+        return MethodSpec.methodBuilder(RestGeneratorHelper.getSetMethodName(name))
                 .addModifiers(Modifier.PUBLIC)
                 .returns(typeMap.getTypeName(type))
-                .addStatement("return $N", name)
+                .addStatement("return $N", RestGeneratorHelper.getFieldName(name))
                 .build();
     }
 }

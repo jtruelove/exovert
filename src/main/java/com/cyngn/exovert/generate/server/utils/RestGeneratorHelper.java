@@ -42,7 +42,15 @@ public class RestGeneratorHelper {
     }
 
     public static String getSetMethodName(String fieldName) {
-        return Constants.SET_METHOD_PREFIX + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, fieldName);
+        return Constants.SET_METHOD_PREFIX + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldName);
+    }
+
+    public static String getGetMethodName(String fieldName) {
+        return Constants.GET_METHOD_PREFIX + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldName);
+    }
+
+    public static String getFieldName(String fieldName) {
+        return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, fieldName.toLowerCase());
     }
 
     public static String getHandlerName(String httpMethod) {
@@ -51,7 +59,7 @@ public class RestGeneratorHelper {
         } else if(httpMethod.equalsIgnoreCase(Constants.HTTP_METHOD_POST)) {
             return Constants.HANDLE_POST;
         } else if(httpMethod.equalsIgnoreCase(Constants.HTTP_METHOD_DELETE)) {
-            return Constants.HANDLE_GET;
+            return Constants.HANDLE_DELETE;
         } else {
             throw new IllegalArgumentException("Invalid or unsupported httpMethod: " + httpMethod);
         }
