@@ -7,10 +7,12 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'application'
 
 version = '0.1.0'
 group = "com.cyngn.vertx"
 archivesBaseName = "exovert"
+mainClassName = "com.cyngn.exovert.CrudCreator"
 
 if (!JavaVersion.current().java8Compatible) {
     throw new IllegalStateException('''A Haiku:
@@ -32,10 +34,11 @@ dependencies {
     compile "com.google.guava:guava:18.0"
     compile "commons-lang:commons-lang:2.6"
     compile "net.sf.jopt-simple:jopt-simple:4.9"
-    compile "com.cyngn.vertx:vertx-util:0.5.3"
+    compile "com.cyngn.vertx:vertx-util:0.5.4"
     compile "com.englishtown.vertx:vertx-cassandra:3.0.0"
     compile "com.englishtown.vertx:vertx-cassandra-mapping:3.0.0"
     compile "com.squareup:javapoet:1.2.0"
+    compile "io.vertx:vertx-codegen:3.0.0"
     testCompile "junit:junit:4.11"
     testCompile "io.vertx:vertx-unit:3.0.0"
 }
@@ -69,6 +72,12 @@ artifacts {
 shadowJar {
     classifier = 'fat'
     manifest {
-        attributes 'Main-Class': 'com.cyngn.exovert.Runner'
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+run {
+    if (project.hasProperty('args')) {
+        args project.args.split('\\s')
     }
 }

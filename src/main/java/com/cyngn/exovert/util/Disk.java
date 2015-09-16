@@ -6,6 +6,8 @@ import io.vertx.core.buffer.Buffer;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Wrapper for interacting with disk and outputting data.
@@ -16,33 +18,66 @@ public class Disk {
     /**
      * Outputs a generated JavaFile
      * @param file the file to output
-     * @throws IOException
+     * @throws IOException if write to file fails
      */
     public static void outputFile(JavaFile file) throws IOException {
+        String javaFile = file.typeSpec.name + ".java";
         if (!isPreview()) {
-            Vertx vertx = VertxRef.instance.get();
+            String path = MetaData.instance.getOutDir() + "/src/main/java/" +
+                    StringUtils.replace(file.packageName, ".", "/");
+            String fileName = path + "/" + javaFile;
 
-            String path = MetaData.instance.getOutDir() + "/" + StringUtils.replace(file.packageName, ".", "/");
-            String fileName = path + "/" + file.typeSpec.name + ".java";
-
-            if(!vertx.fileSystem().existsBlocking(path)) {
-                vertx.fileSystem().mkdirsBlocking(path);
-            }
-
-            System.out.println("Outputting file to path: " + fileName);
-
-            VertxRef.instance.get().fileSystem().writeFile(fileName, Buffer.buffer(file.toString()), result -> {
-                if(result.failed()) {
-                    System.out.println("Failed to create file: " + path + ", ex: " + result.cause());
-                }
-            });
+            writeFile(fileName, file.toString());
         } else {
+            System.out.println("\nFile: " + javaFile + "\n");
             file.writeTo(System.out);
         }
     }
 
     /**
-     * Is the tool running in preview mode?
+     * Outputs a generated JavaFile
+     * @param fileData the file to output
+     * @param fileName the name of the file
+     * @throws IOException if write to file fails
+     */
+    public static void outputFile(String fileData, String fileName) throws IOException {
+        if (!isPreview()) {
+
+            String path = MetaData.instance.getOutDir();
+            String fullPath = path + "/" + fileName;
+
+            writeFile(fullPath, fileData);
+        } else {
+            System.out.println("\nFile: " + fileName + "\n");
+            System.out.println(fileData);
+        }
+    }
+
+    /**
+     * Write the file out.
+     *
+     * @param path the path to write to
+     * @param fileContents the file data
+     */
+    private static void writeFile(String path, String fileContents) {
+        Vertx vertx = VertxRef.instance.get();
+        Path filePath = Paths.get(path);
+        Path dirPath = filePath.getParent();
+        if(!vertx.fileSystem().existsBlocking(dirPath.toString())) {
+            vertx.fileSystem().mkdirsBlocking(dirPath.toString());
+        }
+
+        System.out.println("Outputting file to path: " + path);
+
+        VertxRef.instance.get().fileSystem().writeFile(path, Buffer.buffer(fileContents), result -> {
+            if(result.failed()) {
+                System.out.println("Failed to create file: " + path + ", ex: " + result.cause());
+            }
+        });
+    }
+
+    /**
+     * @return Is the tool running in preview mode?
      */
     public static boolean isPreview() {
         return StringUtils.isEmpty(MetaData.instance.getOutDir());

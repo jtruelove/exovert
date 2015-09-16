@@ -1,0 +1,109 @@
+{
+  "namespace" : "com.cyngn.beer",
+  "apis" : [
+    {
+      "name": "create",
+      "documentation": "API to create beer",
+      "path": "/create",
+      "http_method": "POST",
+      "request": {
+        "fields": [
+          {
+            "name": "name",
+            "type": "String",
+            "required": true,
+            "validation": {
+              "length" : {
+                "min" : 1,
+                "max" : 1000
+              }
+            }
+          },
+          {
+            "name": "quantity_in_ounces",
+            "type": "Integer",
+            "required": true
+          },
+          {
+            "name": "price",
+            "type": "Double",
+            "required": true
+          },
+          {
+            "name": "notes",
+            "type": "String",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "get",
+      "documentation": "API to retrieve beer",
+      "path": "/get",
+      "http_method": "GET",
+      "request": {
+        "fields": [
+          {
+            "name": "name",
+            "type": "String",
+            "required": true,
+            "validation": {
+              "length" : {
+                "min" : 1,
+                "max" : 1000
+              }
+            }
+          }
+        ]
+      },
+      "response": {
+        "fields": [
+          {
+            "name": "name",
+            "type": "String",
+            "required": true
+          },
+          {
+            "name": "quantity_in_ounces",
+            "type": "Integer",
+            "required": true
+          },
+          {
+            "name": "price",
+            "type": "Double",
+            "required": true
+          },
+          {
+            "name": "notes",
+            "type": "String",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete",
+      "documentation": "API to remove beer",
+      "path": "/delete",
+      "http_method": "DELETE",
+      "request": {
+        "fields": [
+          {
+            "name": "name",
+            "type": "String",
+            "required": true,
+            "validation": {
+              "length" : {
+                "min" : 1,
+                "max" : 1000
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "types" : []
+
+}

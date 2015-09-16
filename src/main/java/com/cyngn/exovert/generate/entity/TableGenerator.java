@@ -1,6 +1,7 @@
 package com.cyngn.exovert.generate.entity;
 
 import com.cyngn.exovert.util.Disk;
+import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.DataType;
@@ -30,7 +31,7 @@ public class TableGenerator {
      * Kicks off table generation.
      *
      * @param tables the cassandra table meta data
-     * @throws IOException
+     * @throws IOException if write to file fails
      */
     public static void generate(Collection<TableMetadata> tables) throws IOException {
         String namespaceToUse = MetaData.instance.getTableNamespace();
@@ -45,7 +46,7 @@ public class TableGenerator {
 
             addFields(tableClassBuilder, table, name);
 
-            tableClassBuilder.addJavadoc(MetaData.getJavaDocHeader("Table for Cassandra - " + rawName));
+            tableClassBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader("Table class for Cassandra - " + rawName, MetaData.instance.getUpdateTime()));
 
             JavaFile javaFile = JavaFile.builder(namespaceToUse, tableClassBuilder.build()).build();
 
