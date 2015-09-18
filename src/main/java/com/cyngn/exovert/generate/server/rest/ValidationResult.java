@@ -1,4 +1,4 @@
-package com.cyngn.exovert.generate.server;
+package com.cyngn.exovert.generate.server.rest;
 
 /**
  * Validation Result object for validate method for request objects.

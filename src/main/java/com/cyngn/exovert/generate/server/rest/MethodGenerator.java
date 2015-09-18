@@ -1,13 +1,15 @@
-package com.cyngn.exovert.generate.server;
+package com.cyngn.exovert.generate.server.rest;
 
-import com.cyngn.exovert.generate.server.types.Api;
-import com.cyngn.exovert.generate.server.types.Field;
-import com.cyngn.exovert.generate.server.utils.Constants;
-import com.cyngn.exovert.generate.server.utils.RestGeneratorHelper;
+import com.cyngn.exovert.generate.server.rest.types.Api;
+import com.cyngn.exovert.generate.server.rest.types.Field;
+import com.cyngn.exovert.generate.server.rest.utils.Constants;
+import com.cyngn.exovert.generate.server.rest.utils.RestGeneratorHelper;
 import com.cyngn.vertx.web.HttpHelper;
 import com.cyngn.vertx.web.JsonUtil;
 import com.cyngn.vertx.web.RestApi;
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -18,16 +20,21 @@ import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang.StringUtils;
 
 import javax.lang.model.element.Modifier;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Helper methods to Generates method spec for {@link InterfaceGenerator}
+ * Helper methods to Generates method spec for {@link RestServerGenerator}
  *
  * @author asarda@cyngn.com (Ajay Sarda) 9/11/15.
  */
-public class InterfaceMethodGenerator {
+public class MethodGenerator {
+    private GenerationContext context;
 
-    private static final TypeMap typeMap = TypeMap.create();
+    public MethodGenerator(GenerationContext context) {
+        this.context = context;
+    }
 
     /**
      * Adds post handle method to Api class.
@@ -58,7 +65,10 @@ public class InterfaceMethodGenerator {
      * @param namespace - package namespace
      * @return -{@link MethodSpec}
      */
-    static MethodSpec getHandlePostMethodSpec(Api api, String namespace) {
+    MethodSpec getHandlePostMethodSpec(Api api, String namespace) {
+        Preconditions.checkArgument(api != null, "api == null");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
+
         return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
             .addJavadoc("Handles POST request\n")
             .addParameter(RoutingContext.class, "context", Modifier.FINAL)
@@ -115,7 +125,10 @@ public class InterfaceMethodGenerator {
      * @param namespace  - package namespace
      * @return - {@link MethodSpec}
      */
-    static MethodSpec getHandleGetMethodSpec(Api api, String namespace) {
+    MethodSpec getHandleGetMethodSpec(Api api, String namespace) {
+        Preconditions.checkArgument(api != null, "api == null");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
+
         return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
             .addJavadoc("Handles GET request\n")
             .addParameter(RoutingContext.class, "context", Modifier.FINAL)
@@ -157,7 +170,10 @@ public class InterfaceMethodGenerator {
      * @param namespace  - package namespace
      * @return - {@link MethodSpec}
      */
-    static MethodSpec getHandleDeleteMethodSpec(Api api, String namespace) {
+    MethodSpec getHandleDeleteMethodSpec(Api api, String namespace) {
+        Preconditions.checkArgument(api != null, "api == null");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
+
         return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
             .addJavadoc("Handles DELETE request\n")
             .addParameter(RoutingContext.class, "context", Modifier.FINAL)
@@ -189,12 +205,15 @@ public class InterfaceMethodGenerator {
      * @param namespace - package namespace
      * @return - {@link CodeBlock}
      */
-    private static CodeBlock getRequestCodeBlock(Api api, String namespace) {
+    private CodeBlock getRequestCodeBlock(Api api, String namespace) {
+        Preconditions.checkArgument(api != null, "api == null");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
+
         CodeBlock.Builder builder = CodeBlock.builder();
         builder.addStatement("$L $L = new $T()",
-                RestGeneratorHelper.getRequestObjectName(api.name),
-                RestGeneratorHelper.getRequestVariableName(api.name),
-                ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)));
+                RestGeneratorHelper.getBuilderTypeName(RestGeneratorHelper.getRequestObjectName(api.name)),
+                "builder",
+                ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getBuilderTypeName(RestGeneratorHelper.getRequestObjectName(api.name))));
 
         for (Field field : api.request.fields) {
             // TODO: generate objects for custom defined types.
@@ -202,13 +221,14 @@ public class InterfaceMethodGenerator {
             builder.add("request.getParam($S)", CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.name));
             builder.add(" != null) {\n").indent();
             builder.add("$L.$L(",
-                    RestGeneratorHelper.getRequestVariableName(api.name),
-                    RestGeneratorHelper.getSetMethodName(field.name));
-            builder.add(typeMap.getTypeConverter(field.type,
+                    "builder",
+                    field.name);
+            builder.add(context.typeMap.getTypeConverter(field.type,
                     CodeBlock.builder().add("request.getParam($S)", CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.name)).build()));
             builder.unindent().add("}\n");
         }
 
+        builder.addStatement("$L $L = builder.build()", RestGeneratorHelper.getRequestObjectName(api.name), RestGeneratorHelper.getRequestVariableName(api.name));
         return builder.build();
     }
 
@@ -233,7 +253,10 @@ public class InterfaceMethodGenerator {
      * @param namespace - package namespace
      * @return - {@link MethodSpec}
      */
-    static MethodSpec getValidateMethodSpec(Api api, String namespace) {
+    MethodSpec getValidateMethodSpec(Api api, String namespace) {
+        Preconditions.checkArgument(api != null, "api == null");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
+
         return MethodSpec.methodBuilder("validate")
                 .addJavadoc("Handles validation of request\n")
                 .addParameter(HttpServerRequest.class, "request", Modifier.FINAL)
@@ -264,7 +287,10 @@ public class InterfaceMethodGenerator {
      * @param namespace - package namespace
      * @return - {@link MethodSpec}
      */
-    static MethodSpec getProcessMethodSpec(Api api, String namespace) {
+    MethodSpec getProcessMethodSpec(Api api, String namespace) {
+        Preconditions.checkArgument(api != null, "api == null");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
+
         return MethodSpec.methodBuilder("process")
                 .addJavadoc("Processes the request\n")
                 .addParameter(HttpServerRequest.class, "request", Modifier.FINAL)
@@ -285,7 +311,7 @@ public class InterfaceMethodGenerator {
      * </pre>
      * @return - {@link MethodSpec}
      */
-    static MethodSpec getSupportedApi() {
+    MethodSpec getSupportedApi() {
         return MethodSpec.methodBuilder("supportedApi")
                 .addAnnotation(Override.class)
                 .addStatement("$L", "return " + Constants.SUPPORTED_API_FIELD)
@@ -314,7 +340,7 @@ public class InterfaceMethodGenerator {
      * @param fields - fields of the type
      * @return - {@link MethodSpec}
      */
-    static MethodSpec getValidateMethodSpec(List<Field> fields) {
+    MethodSpec getValidateMethodSpec(List<Field> fields) {
         MethodSpec.Builder validationMethodBuilder =
                 MethodSpec.methodBuilder(Constants.VALIDATE)
                         .addJavadoc("Validates request object\n")
@@ -370,14 +396,17 @@ public class InterfaceMethodGenerator {
      * </pre>
      *
      * @param name - field name
-     * @param type - field type
+     * @param typeName - field type name
      * @return - {@link MethodSpec}
      */
-    static MethodSpec getSetMethodSpec(String name, String type) {
+    MethodSpec getSetMethodSpec(String name, TypeName typeName) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(name), "field name cannot be empty or null");
+        Preconditions.checkArgument(typeName != null, "typeName == null");
+
         return MethodSpec.methodBuilder(RestGeneratorHelper.getSetMethodName(name))
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(typeMap.getTypeName(type), RestGeneratorHelper.getFieldName(name))
-                .addStatement("this.$N = $N", RestGeneratorHelper.getFieldName(name), RestGeneratorHelper.getFieldName(name))
+                .addParameter(typeName, name)
+                .addStatement("this.$N = $N", name, name)
                 .build();
     }
 
@@ -395,14 +424,87 @@ public class InterfaceMethodGenerator {
      * </pre>
      *
      * @param name - field name
-     * @param type - field type
+     * @param typeName - field type
      * @return - {@link MethodSpec}
      */
-    static MethodSpec getGetMethodSpec(String name, String type) {
-        return MethodSpec.methodBuilder(RestGeneratorHelper.getSetMethodName(name))
+    MethodSpec getGetMethodSpec(String name, TypeName typeName) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(name), "field name cannot be empty or null");
+        Preconditions.checkArgument(typeName != null, "typeName == null");
+
+        return MethodSpec.methodBuilder(RestGeneratorHelper.getGetMethodName(name))
                 .addModifiers(Modifier.PUBLIC)
-                .returns(typeMap.getTypeName(type))
-                .addStatement("return $N", RestGeneratorHelper.getFieldName(name))
+                .returns(typeName)
+                .addStatement("return $N", name)
                 .build();
+    }
+
+    /**
+     * Generates methods for hashCode method.
+     *
+     * @param fieldNames - list of fields in the type
+     * @return - {@link MethodSpec}
+     */
+    MethodSpec getHashCodeSpec(List<String> fieldNames) {
+        MethodSpec.Builder hashCodeBuilder =  MethodSpec.methodBuilder("hashCode")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.INT);
+
+        hashCodeBuilder.addStatement("return $T.hash($L)", Objects.class, Joiner.on(", ").join(fieldNames));
+        return hashCodeBuilder.build();
+    }
+
+    /**
+     * Returns method spec for Object.equals() method.
+     * @param className - class name for which equals() is needed
+     * @param fieldNames - list of fields of the class.
+     */
+    MethodSpec getEqualsCodeSpec(String className, List<String> fieldNames) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(className), "class name cannot be empty or null");
+
+        MethodSpec.Builder equalsBuilder =  MethodSpec.methodBuilder("equals")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(Object.class, "obj")
+                .returns(TypeName.BOOLEAN);
+
+        List<String> objectsEqualsList = new ArrayList<>();
+
+        for (String fieldName : fieldNames) {
+            objectsEqualsList.add("Objects.equals(" + fieldName + ", other." + fieldName + ")");
+        }
+
+        String objectEqualsString = Joiner.on(" &&\n").join(objectsEqualsList);
+
+        return equalsBuilder.beginControlFlow( "if (obj == this) ")
+                .addStatement("return true")
+                .endControlFlow()
+                .addCode("\n")
+                .beginControlFlow("if (obj instanceof $L)", className)
+                .addStatement("$L other = ($L) obj", className, className)
+                .addStatement("return $L", objectEqualsString)
+                .endControlFlow()
+                .addCode("\n")
+                .addStatement("return false")
+                .build();
+    }
+
+    /**
+     * Returns MethodSpec for Object.toString() method
+     */
+    MethodSpec getToStringCodeSpec() {
+        return MethodSpec.methodBuilder("toString")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(context.typeMap.getTypeName("String"))
+                .addStatement(" return $T.toString(this)", Objects.class)
+                .build();
+    }
+
+    /**
+     * Returns MethodSpec for empty constructor
+     */
+    MethodSpec getEmptyConstructorSpec() {
+        return MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).build();
     }
 }

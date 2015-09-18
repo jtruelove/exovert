@@ -1,8 +1,10 @@
-package com.cyngn.exovert.generate.server;
+package com.cyngn.exovert.generate.server.rest;
 
+import com.google.common.base.Preconditions;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +18,7 @@ import java.util.function.Function;
  *
  * @author asarda@cyngn.com (Ajay Sarda) 9/8/15.
  */
-public class TypeMapImpl implements TypeMap {
+class TypeMapImpl implements TypeMap {
 
     private Map<String, TypeName> typeToClassMapping = new HashMap<>();
     private Map<String, Function<CodeBlock, CodeBlock>> typeConverterMapping  = new HashMap<>();
@@ -45,9 +47,10 @@ public class TypeMapImpl implements TypeMap {
         typeToClassMapping.put("Float", ClassName.get("java.lang", "Float"));
         typeToClassMapping.put("Double", ClassName.get("java.lang", "Double"));
 
-
         typeToClassMapping.put("Date", ClassName.get("org.joda.time", "DateTime"));
         typeToClassMapping.put("String", ClassName.get("java.lang", "String"));
+        typeToClassMapping.put("List", ClassName.get("java.util", "List"));
+        typeToClassMapping.put("Map", ClassName.get("java.util", "Map"));
 
         //converters for type
         // for boolean
@@ -106,8 +109,7 @@ public class TypeMapImpl implements TypeMap {
         typeConverterMapping.put("String", cb ->
                 CodeBlock.builder().add("$L", cb).addStatement(")").build());
 
-        //TODO: add list, map types.
-        //Conversion will be tricky, unless we define our own serialization and use it across the board.
+        //Conversion for map and list will be tricky, unless we define our own serialization and use it across the board.
     }
 
     public TypeMapImpl() {
@@ -116,6 +118,8 @@ public class TypeMapImpl implements TypeMap {
 
     @Override
     public TypeName getTypeName(String type) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
+
         TypeName typeName = typeToClassMapping.get(type);
         if (typeName == null) {
             throw new IllegalArgumentException("Invalid type: " + type);
@@ -125,15 +129,23 @@ public class TypeMapImpl implements TypeMap {
 
     @Override
     public void registerType(String type, TypeName typeName) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
+        Preconditions.checkArgument(typeName != null, "TypeName cannot be empty or null");
+
+        if (typeToClassMapping.containsKey(type)) {
+            throw new IllegalArgumentException(String.format("Type:%s already registered", type));
+        }
         typeToClassMapping.put(type, typeName);
     }
 
     @Override
     public CodeBlock getTypeConverter(String type, CodeBlock cb) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
+        Preconditions.checkArgument(cb != null, "cb == null");
+
         if (!typeConverterMapping.containsKey(type)) {
             throw new IllegalArgumentException("No converter found for type: " + type);
         }
-
         return typeConverterMapping.get(type).apply(cb);
     }
 }

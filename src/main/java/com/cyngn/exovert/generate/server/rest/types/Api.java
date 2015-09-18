@@ -1,4 +1,4 @@
-package com.cyngn.exovert.generate.server.types;
+package com.cyngn.exovert.generate.server.rest.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -29,6 +29,8 @@ public class Api {
 
     /**
      * {@link io.vertx.core.http.HttpMethod} associated with the API
+     *
+     * Currently supported http_methods are GET, POST, DELETE
      */
     @JsonProperty("http_method")
     public String httpMethod;

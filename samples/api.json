@@ -33,6 +33,11 @@
             "name": "notes",
             "type": "String",
             "required": false
+          },
+          {
+            "name": "beer_type",
+            "type": "beer_type",
+            "required": false
           }
         ]
       }
@@ -104,6 +109,91 @@
       }
     }
   ],
-  "types" : []
-
+  "dataTypes" : {
+    "enumTypes": [
+      {
+        "name" : "beer_type",
+        "documentation": "Enumerated type for different types of beer",
+         "values":[
+           {
+             "name" : "ALCOHOLIC",
+             "value" : "alcoholic"
+           },
+           {
+             "name" : "NON_ALCOHOLIC",
+             "value" : "non_alcoholic"
+           }
+         ]
+      }
+    ],
+    "classTypes": [
+      {
+        "name" : "type_has_string",
+        "documentation": "Example to show Type with String",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "name",
+            "type": "String"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_other_type",
+        "documentation": "Example to show Type composed with other type",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "other_type",
+            "type": "type_has_string"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_immutable_string",
+        "documentation": "Example to show Immutable type with string",
+        "immutable" : true,
+        "fields": [
+          {
+            "name": "names",
+            "type": "List<String>"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_string_with_json_annotations",
+        "documentation": "Example to show Type annotated with Json annotations",
+        "immutable" : false,
+        "jsonAnnotations" : true,
+        "fields": [
+          {
+            "name": "names",
+            "type": "List<String>"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_map",
+        "documentation": "Example to show Type with map field",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "names",
+            "type": "Map<String,String>"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_list",
+        "documentation" : "Example to show Type with list field",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "names",
+            "type": "List<String>"
+          }
+        ]
+      }
+    ]
+  }
 }

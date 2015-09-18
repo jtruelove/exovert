@@ -1,7 +1,7 @@
 package com.cyngn.exovert.generate.rest;
 
 import com.cyngn.exovert.generate.entity.EntityGeneratorHelper;
-import com.cyngn.exovert.generate.server.TypeMap;
+import com.cyngn.exovert.generate.server.rest.TypeMap;
 import com.cyngn.exovert.util.Disk;
 import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;

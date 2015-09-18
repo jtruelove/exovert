@@ -1,4 +1,4 @@
-package com.cyngn.exovert.generate.server;
+package com.cyngn.exovert.generate.server.rest;
 
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;

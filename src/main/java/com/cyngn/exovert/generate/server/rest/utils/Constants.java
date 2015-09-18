@@ -1,7 +1,9 @@
-package com.cyngn.exovert.generate.server.utils;
+package com.cyngn.exovert.generate.server.rest.utils;
+
+import com.cyngn.exovert.generate.server.rest.RestServerGenerator;
 
 /**
- * Contains constants for {@link com.cyngn.exovert.generate.server.InterfaceGenerator}
+ * Contains constants for {@link RestServerGenerator}
  *
  * @author asarda@cyngn.com (Ajay Sarda) 9/10/15.
  */
@@ -20,6 +22,8 @@ public class Constants {
     public static final String RESPONSE_CLASS_SUFFIX = "Response";
     public static final String API_NAME_PREFIX = "Abstract";
     public static final String API_NAME_SUFFIX = "Api";
+    public static final String BUILDER_CLASS_NAME = "Builder";
+    public static final String BUILDER_CLASS_SUFFIX = "." +  BUILDER_CLASS_NAME;
 
     // method name constants
     public static final String VALIDATE = "validate";

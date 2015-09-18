@@ -1,4 +1,4 @@
-package com.cyngn.exovert.generate.server.types;
+package com.cyngn.exovert.generate.server.rest.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,6 +11,9 @@ import java.util.List;
  */
 
 public class Response {
+    /**
+     * List of fields
+     */
     @JsonProperty("fields")
     public List<Field> fields;
 }
