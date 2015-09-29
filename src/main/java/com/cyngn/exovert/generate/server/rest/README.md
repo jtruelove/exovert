@@ -72,7 +72,7 @@ build/bin/RestGenerator --server --spec api.json --out build/generated-src
 
 generates
 
-```Java
+```java
 package com.cyngn.beer.types;
 
 import java.lang.IllegalArgumentException;
@@ -441,11 +441,11 @@ build/bin/RestGenerator --server --spec api.json --out build/generated-src
     ]
   }
 }
-```Json
+```json
 
 generates
 
-```Java
+```java
 package com.cyngn.beer.types;
 
 import java.lang.IllegalArgumentException;
@@ -793,7 +793,7 @@ public abstract class AbstractGetApi implements RestApi {
 build/bin/RestGenerator --server --spec api.json --out build/generated-src
 ```
 
-```Json
+```json
 {
   "namespace" : "com.cyngn.beer",
   "apis" : [
@@ -824,7 +824,7 @@ build/bin/RestGenerator --server --spec api.json --out build/generated-src
 
 generates
 
-```Java
+```java
 package com.cyngn.beer.types;
 
 import com.cyngn.exovert.generate.server.rest.ValidationResult;
@@ -994,7 +994,7 @@ public abstract class AbstractDeleteApi implements RestApi {
 build/bin/RestGenerator --client --spec api.json --out build/generated-src
 ```
 
-```Json
+```json
 {
   "namespace" : "com.cyngn.beer",
   "apis" : [
@@ -1128,7 +1128,7 @@ build/bin/RestGenerator --client --spec api.json --out build/generated-src
 ```
 generates
 
-```Java
+```java
 package com.cyngn.beer.types;
 
 import java.lang.IllegalArgumentException;
@@ -1673,7 +1673,7 @@ public class DeleteRequest {
 build/bin/RestGenerator --types --spec api.json --out build/generated-src
 ```
 
-```Json
+```json
 {
   "dataTypeGroups":[
     {
@@ -1785,7 +1785,7 @@ build/bin/RestGenerator --types --spec api.json --out build/generated-src
 
 generates
 
-```Java
+```java
 package com.cyngn.types.examples.one.types;
 
 import java.lang.IllegalArgumentException;
