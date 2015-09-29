@@ -17,6 +17,6 @@ public class DataTypeSpec {
      *
      * {@link DataTypeGroup} represents the set of datatypes in package namespace.
      */
-    @JsonProperty
+    @JsonProperty("data_type_groups")
     public List<DataTypeGroup> dataTypeGroups;
 }

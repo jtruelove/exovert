@@ -42,8 +42,12 @@ public class TypeMapImplTest {
         CodeBlock cb = typeMap.getTypeConverter("String",
                 CodeBlock.builder().add("request.getParam($S)", CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "name")).build());
 
-        // TODO: fix the '
-        // assertEquals("request.getParam(\"name\"));", cb.toString());
+        assertEquals("request.getParam(\"name\")", cb.toString());
+
+        cb = typeMap.getTypeConverter("Long",
+                CodeBlock.builder().add("request.getParam($S)", CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, "value")).build());
+
+        assertEquals("java.lang.Long.parseLong(request.getParam(\"value\"))", cb.toString());
     }
 
 }

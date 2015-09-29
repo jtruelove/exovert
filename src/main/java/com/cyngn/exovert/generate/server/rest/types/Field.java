@@ -25,7 +25,7 @@ public class Field {
     public String type;
 
     /**
-     * Whether required or not
+     * Whether required or not. By default, fields are optional.
      */
     @JsonProperty
     public boolean required;

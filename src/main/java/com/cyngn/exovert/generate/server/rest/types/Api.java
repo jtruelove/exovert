@@ -16,7 +16,7 @@ public class Api {
     public String name;
 
     /**
-     * API documentation
+     * API documentation block
      */
     @JsonProperty
     public String documentation;

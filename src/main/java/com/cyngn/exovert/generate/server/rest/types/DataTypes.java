@@ -14,12 +14,12 @@ public class DataTypes {
     /**
      * List of enumerated types
      */
-    @JsonProperty
+    @JsonProperty("enum_types")
     public List<EnumType> enumTypes;
 
     /**
      * List of class types
      */
-    @JsonProperty
+    @JsonProperty("class_types")
     public List<ClassType> classTypes;
 }

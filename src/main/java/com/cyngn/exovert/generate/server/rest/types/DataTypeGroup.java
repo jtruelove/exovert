@@ -18,6 +18,6 @@ public class DataTypeGroup {
     /**
      * List of {@link DataTypes}
      */
-    @JsonProperty
+    @JsonProperty("data_types")
     public DataTypes dataTypes;
 }

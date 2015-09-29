@@ -163,7 +163,8 @@ public class ClassGenerator {
 
         for (Field field : fields) {
             String fieldName = RestGeneratorHelper.getFieldName(field.name);
-            TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(field.type), context.typeMap);
+            TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(field.type, context.typeMap),
+                    context.typeMap);
 
             // field spec
             FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(fieldTypeName, fieldName)
@@ -259,7 +260,9 @@ public class ClassGenerator {
                 .addModifiers(Modifier.STATIC);
 
         for (Field field : fields) {
-            TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(field.type), context.typeMap);
+            TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(
+                    field.type, context.typeMap), context.typeMap);
+
             String fieldName = RestGeneratorHelper.getFieldName(field.name);
 
             builder.addField(FieldSpec.builder(fieldTypeName, fieldName)
@@ -417,7 +420,7 @@ public class ClassGenerator {
      *         return value;
      *     }
      *
-     *    public BeerType fromValue(final String value) throws IllegalArgumentException {
+     *    public static BeerType fromValue(final String value) throws IllegalArgumentException {
      *         for (BeerType enumValue : BeerType.values()) {
      *             if (enumValue.value.equals(value)) {
      *                 return enumValue;
@@ -432,16 +435,16 @@ public class ClassGenerator {
      * @return - {@link TypeSpec}
      */
     TypeSpec getEnumTypeSpec(String namespace, EnumType enumType) {
-
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
         Preconditions.checkArgument(enumType != null, "enumType == null");
 
-        context.typeMap.registerType(RestGeneratorHelper.getTypeName(enumType.name),
-                ClassName.get(namespace,
-                        RestGeneratorHelper.getTypeName(enumType.name)));
+        String enumTypeName = RestGeneratorHelper.getTypeName(enumType.name, context.typeMap);
+
+        context.typeMap.registerType(enumTypeName,
+                ClassName.get(namespace, enumTypeName), true);
 
         TypeSpec.Builder enumTypespecBuilder = TypeSpec
-                .enumBuilder(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumType.name))
+                .enumBuilder(enumTypeName)
                 .addModifiers(Modifier.PUBLIC)
                 .addJavadoc(GeneratorHelper.getJavaDocHeader(enumType.documentation));
 
@@ -463,13 +466,11 @@ public class ClassGenerator {
 
         // fromValue method
         enumTypespecBuilder.addMethod(MethodSpec.methodBuilder("fromValue")
-                .addModifiers(Modifier.PUBLIC)
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addException(IllegalArgumentException.class)
-                .returns(ClassName.get(namespace, CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumType.name)))
+                .returns(ClassName.get(namespace, enumTypeName))
                 .addParameter(String.class, "value", Modifier.FINAL)
-                .beginControlFlow("for ($L enumValue : $L.values())",
-                        CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumType.name),
-                        CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumType.name))
+                .beginControlFlow("for ($L enumValue : $L.values())", enumTypeName, enumTypeName)
                 .beginControlFlow("if (enumValue.value.equals(value))")
                 .addStatement("return enumValue")
                 .endControlFlow()

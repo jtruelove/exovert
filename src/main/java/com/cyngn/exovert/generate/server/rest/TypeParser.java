@@ -1,5 +1,6 @@
 package com.cyngn.exovert.generate.server.rest;
 
+import com.cyngn.exovert.generate.server.rest.utils.RestGeneratorHelper;
 import com.google.common.base.Preconditions;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -20,8 +21,12 @@ import java.util.regex.Pattern;
  */
 public class TypeParser {
 
-    private static final String MAP_PATTERN = "Map<\\s*(\\S+)\\s*,\\s*(\\S+)\\s*>";
-    private static final String LIST_PATTERN = "List<\\s*(\\S+)\\s*>";
+    // Pattern for map< string, string >
+    private static final String MAP_PATTERN = "map<\\s*(\\S+)\\s*,\\s*(\\S+)\\s*>";
+    // Pattern for list< string >
+    private static final String LIST_PATTERN = "list<\\s*(\\S+)\\s*>";
+    // Pattern for set< string >
+    private static final String SET_PATTERN = "set<\\s*(\\S+)\\s*>";
 
     /**
      * Parses the type string and return the TypeName for it
@@ -36,6 +41,8 @@ public class TypeParser {
 
         if (isList(type)) {
             return parseList(type, typeMap);
+        } else if (isSet(type)) {
+            return parseSet(type, typeMap);
         } else if (isMap(type)) {
             return parseMap(type, typeMap);
         } else {
@@ -47,6 +54,12 @@ public class TypeParser {
         ClassName list = (ClassName) typeMap.getTypeName("List");
         return ParameterizedTypeName.get(list,
                 typeMap.getTypeName(getListType(type)));
+    }
+
+    private static TypeName parseSet(String type, TypeMap typeMap) {
+        ClassName set = (ClassName) typeMap.getTypeName("Set");
+        return ParameterizedTypeName.get(set,
+                typeMap.getTypeName(RestGeneratorHelper.getTypeNameString(getSetType(type))));
     }
 
     private static TypeName parseMap(String type, TypeMap typeMap) {
@@ -62,7 +75,16 @@ public class TypeParser {
      * @return true if type is list type
      */
     public static boolean isList(String type) {
-        return type.startsWith("List");
+        return type.toLowerCase().startsWith("list");
+    }
+
+    /**
+     * Checks if the given type string is set type
+     * @param type - type string
+     * @return true if type is set type
+     */
+    public static boolean isSet(String type) {
+        return type.toLowerCase().startsWith("set");
     }
 
     /**
@@ -71,7 +93,7 @@ public class TypeParser {
      * @return true if type is map type
      */
     public static boolean isMap(String type) {
-        return type.startsWith("Map");
+        return type.toLowerCase().startsWith("map");
     }
 
     /**
@@ -83,7 +105,7 @@ public class TypeParser {
         Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
 
         if (isList(type)){
-            Pattern pattern = Pattern.compile(LIST_PATTERN);
+            Pattern pattern = Pattern.compile(LIST_PATTERN, Pattern.CASE_INSENSITIVE);
             Matcher m = pattern.matcher(type);
             if (m.find()) {
                 return m.group(1);
@@ -95,6 +117,26 @@ public class TypeParser {
     }
 
     /**
+     * Gets the element type in set type
+     * @param type - type string
+     * @return T if the type is Set<T>
+     */
+    public static String getSetType(String type) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
+
+        if (isSet(type)){
+            Pattern pattern = Pattern.compile(SET_PATTERN, Pattern.CASE_INSENSITIVE);
+            Matcher m = pattern.matcher(type);
+            if (m.find()) {
+                return m.group(1);
+            } else {
+                throw new IllegalArgumentException("Invalid element type in set");
+            }
+        }
+        throw new IllegalArgumentException("Type: " + type + " is not a set");
+    }
+
+    /**
      * Gets the key type in map type
      * @param type - type string
      * @return K if the type is Map&lt;K,V&gt;
@@ -103,7 +145,7 @@ public class TypeParser {
         Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
 
         if (isMap(type)){
-            Pattern pattern = Pattern.compile(MAP_PATTERN);
+            Pattern pattern = Pattern.compile(MAP_PATTERN, Pattern.CASE_INSENSITIVE);
             Matcher m = pattern.matcher(type);
             if (m.find()) {
                 return m.group(1);
@@ -123,7 +165,7 @@ public class TypeParser {
         Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
 
         if (isMap(type)){
-            Pattern pattern = Pattern.compile(MAP_PATTERN);
+            Pattern pattern = Pattern.compile(MAP_PATTERN, Pattern.CASE_INSENSITIVE);
             Matcher m = pattern.matcher(type);
             if (m.find()) {
                 return m.group(2);
@@ -131,6 +173,6 @@ public class TypeParser {
                 throw new IllegalArgumentException("Invalid types in map: " + type);
             }
         }
-        throw new IllegalArgumentException("Type: " + type + " is not a list");
+        throw new IllegalArgumentException("Type: " + type + " is not a map");
     }
 }

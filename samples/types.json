@@ -1,9 +1,9 @@
 {
-  "dataTypeGroups":[
+  "data_type_groups":[
     {
       "namespace" : "com.cyngn.types.examples.one",
-      "dataTypes" : {
-        "enumTypes": [
+      "data_types" : {
+        "enum_types": [
           {
             "name": "beer_type",
             "documentation": "Enumerated type for different types of beer",
@@ -19,7 +19,7 @@
             ]
           }
         ],
-        "classTypes": [
+        "class_types": [
           {
             "name": "type_has_string",
             "documentation": "Example to show Type with String",
@@ -27,7 +27,7 @@
             "fields": [
               {
                 "name": "name",
-                "type": "String"
+                "type": "string"
               }
             ]
           }
@@ -36,8 +36,8 @@
     },
     {
       "namespace" : "com.cyngn.types.examples.two",
-      "dataTypes" : {
-        "enumTypes": [
+      "data_types" : {
+        "enum_types": [
           {
             "name": "beer_type",
             "documentation": "Enumerated type for different types of beer",
@@ -53,7 +53,7 @@
             ]
           }
         ],
-        "classTypes": [
+        "class_types": [
           {
             "name" : "type_has_immutable_string",
             "documentation": "Example to show Immutable type with string",
@@ -61,7 +61,7 @@
             "fields": [
               {
                 "name": "names",
-                "type": "List<String>"
+                "type": "list<string>"
               }
             ]
           },
@@ -69,11 +69,11 @@
             "name" : "type_has_string_with_json_annotations",
             "documentation": "Example to show Type annotated with Json annotations",
             "immutable" : false,
-            "jsonAnnotations" : true,
+            "json_annotations" : true,
             "fields": [
               {
                 "name": "names",
-                "type": "List<String>"
+                "type": "list<string>"
               }
             ]
           },
@@ -84,7 +84,7 @@
             "fields": [
               {
                 "name": "names",
-                "type": "Map<String,String>"
+                "type": "map<string,string>"
               }
             ]
           },
@@ -95,7 +95,7 @@
             "fields": [
               {
                 "name": "names",
-                "type": "List<String>"
+                "type": "list<string>"
               }
             ]
           }

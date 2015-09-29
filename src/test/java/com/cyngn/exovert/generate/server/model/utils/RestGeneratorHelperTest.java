@@ -1,6 +1,7 @@
 package com.cyngn.exovert.generate.server.model.utils;
 
 import com.cyngn.exovert.generate.server.rest.InterfaceSpec;
+import com.cyngn.exovert.generate.server.rest.TypeMap;
 import com.cyngn.exovert.generate.server.rest.utils.RestGeneratorHelper;
 import org.junit.Test;
 
@@ -13,8 +14,12 @@ public class RestGeneratorHelperTest {
 
     @Test
     public void testGetApiName() {
-        assertEquals("AbstractCreateBeerApi", RestGeneratorHelper.getApiName("createBeer"));
-        assertEquals("AbstractCreateBeerApi", RestGeneratorHelper.getApiName("CreateBeer"));
+        assertEquals("AbstractCreateBeerApi", RestGeneratorHelper.getApiName("create_beer"));
+        assertEquals("AbstractCreateBeerApi", RestGeneratorHelper.getApiName("Create_beer"));
+        assertEquals("AbstractCreateBeerApi", RestGeneratorHelper.getApiName("create_Beer"));
+        assertEquals("AbstractCreateBeerApi", RestGeneratorHelper.getApiName("Create_Beer"));
+        assertEquals("AbstractCreatebeerApi", RestGeneratorHelper.getApiName("CreateBeer"));
+
     }
 
     @Test
@@ -66,14 +71,20 @@ public class RestGeneratorHelperTest {
 
     @Test
     public void testGetTypeName() {
-        assertEquals("String", RestGeneratorHelper.getTypeName("String"));
-        assertEquals("BeerType", RestGeneratorHelper.getTypeName("beer_type"));
-        assertEquals("List<String>", RestGeneratorHelper.getTypeName("List<String>"));
-        assertEquals("List<BeerType>", RestGeneratorHelper.getTypeName("List<beer_type>"));
-        assertEquals("Map<String,String>", RestGeneratorHelper.getTypeName("Map< String , String>"));
-        assertEquals("Map<String,BeerType>", RestGeneratorHelper.getTypeName("Map< String , beer_type>"));
-        assertEquals("Map<BeerType,String>", RestGeneratorHelper.getTypeName("Map< beer_type , String>"));
-        assertEquals("Map<BeerType,BeerType>", RestGeneratorHelper.getTypeName("Map< beer_type , beer_type>"));
+        TypeMap typeMap = TypeMap.create();
+        assertEquals("Integer", RestGeneratorHelper.getTypeName("Integer", typeMap));
+        assertEquals("String", RestGeneratorHelper.getTypeName("String", typeMap));
+        assertEquals("List<String>", RestGeneratorHelper.getTypeName("List<String>", typeMap));
+        assertEquals("List<String>", RestGeneratorHelper.getTypeName("list<String>", typeMap));
+        assertEquals("List<String>", RestGeneratorHelper.getTypeName("List<string>", typeMap));
+        assertEquals("List<String>", RestGeneratorHelper.getTypeName("list<string>", typeMap));
+        assertEquals("Set<String>", RestGeneratorHelper.getTypeName("Set<String>", typeMap));
+        assertEquals("Set<String>", RestGeneratorHelper.getTypeName("set<String>", typeMap));
+        assertEquals("Set<String>", RestGeneratorHelper.getTypeName("Set<string>", typeMap));
+        assertEquals("Set<String>", RestGeneratorHelper.getTypeName("set<string>", typeMap));
+        assertEquals("Map<String,String>", RestGeneratorHelper.getTypeName("Map< String , String>", typeMap));
+        assertEquals("Map<BeerType,String>", RestGeneratorHelper.getTypeName("Map< beer_type , string>", typeMap));
+        assertEquals("Map<BeerType,BeerType>", RestGeneratorHelper.getTypeName("Map< beer_type , beer_type>", typeMap));
     }
 
     @Test

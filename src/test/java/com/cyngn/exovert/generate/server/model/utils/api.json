@@ -47,8 +47,8 @@
       }
     }
   ],
-  "dataTypes" : {
-    "enumTypes": [
+  "data_types" : {
+    "enum_types": [
       {
         "name" : "beer_type",
         "documentation": "Enumerated type for different types of beer",
@@ -64,7 +64,7 @@
         ]
       }
     ],
-    "classTypes": [
+    "class_types": [
       {
         "name" : "type_has_string",
         "documentation": "Example to show Type with String",

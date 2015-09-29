@@ -10,7 +10,7 @@
         "fields": [
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "required": true,
             "validation": {
               "length" : {
@@ -21,17 +21,17 @@
           },
           {
             "name": "quantity_in_ounces",
-            "type": "Integer",
+            "type": "integer",
             "required": true
           },
           {
             "name": "price",
-            "type": "Double",
+            "type": "double",
             "required": true
           },
           {
             "name": "notes",
-            "type": "String",
+            "type": "string",
             "required": false
           },
           {
@@ -51,7 +51,7 @@
         "fields": [
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "required": true,
             "validation": {
               "length" : {
@@ -66,22 +66,22 @@
         "fields": [
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "required": true
           },
           {
             "name": "quantity_in_ounces",
-            "type": "Integer",
+            "type": "integer",
             "required": true
           },
           {
             "name": "price",
-            "type": "Double",
+            "type": "double",
             "required": true
           },
           {
             "name": "notes",
-            "type": "String",
+            "type": "string",
             "required": false
           }
         ]
@@ -96,7 +96,7 @@
         "fields": [
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "required": true,
             "validation": {
               "length" : {
@@ -109,8 +109,8 @@
       }
     }
   ],
-  "dataTypes" : {
-    "enumTypes": [
+  "data_types" : {
+    "enum_types": [
       {
         "name" : "beer_type",
         "documentation": "Enumerated type for different types of beer",
@@ -126,7 +126,7 @@
          ]
       }
     ],
-    "classTypes": [
+    "class_types": [
       {
         "name" : "type_has_string",
         "documentation": "Example to show Type with String",
@@ -134,7 +134,7 @@
         "fields": [
           {
             "name": "name",
-            "type": "String"
+            "type": "string"
           }
         ]
       },
@@ -156,7 +156,7 @@
         "fields": [
           {
             "name": "names",
-            "type": "List<String>"
+            "type": "list<string>"
           }
         ]
       },
@@ -164,11 +164,11 @@
         "name" : "type_has_string_with_json_annotations",
         "documentation": "Example to show Type annotated with Json annotations",
         "immutable" : false,
-        "jsonAnnotations" : true,
+        "json_annotations" : true,
         "fields": [
           {
             "name": "names",
-            "type": "List<String>"
+            "type": "list<string>"
           }
         ]
       },
@@ -179,7 +179,7 @@
         "fields": [
           {
             "name": "names",
-            "type": "Map<String,String>"
+            "type": "map<string,string>"
           }
         ]
       },
@@ -190,7 +190,18 @@
         "fields": [
           {
             "name": "names",
-            "type": "List<String>"
+            "type": "list<string>"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_set",
+        "documentation" : "Example to show Type with set field",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "names",
+            "type": "set<string>"
           }
         ]
       }

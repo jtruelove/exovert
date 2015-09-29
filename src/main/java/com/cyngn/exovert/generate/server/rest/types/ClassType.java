@@ -32,7 +32,7 @@ public class ClassType {
     /**
      * Should include json annotations or not
      */
-    @JsonProperty
+    @JsonProperty("json_annotations")
     public boolean jsonAnnotations;
 
     /**

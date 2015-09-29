@@ -28,7 +28,6 @@ class CommonRestGenerator {
 
     public CommonRestGenerator(GenerationContext context) {
         this.context = context;
-        this.context.typeMap = TypeMap.create();
         this.methodGenerator = new MethodGenerator(this.context);
         this.classGenerator = new ClassGenerator(this.context, this.methodGenerator);
     }
@@ -58,7 +57,7 @@ class CommonRestGenerator {
                     TypeSpec typeSpec =
                             classGenerator.getTypeSpecBuilder(
                                     RestGeneratorHelper.getTypesNamespace(spec.namespace),
-                                    RestGeneratorHelper.getTypeName(classType.name),
+                                    RestGeneratorHelper.getTypeName(classType.name, context.typeMap),
                                     classType.fields, classType.immutable, classType.jsonAnnotations)
                                     .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.documentation)).build();
 

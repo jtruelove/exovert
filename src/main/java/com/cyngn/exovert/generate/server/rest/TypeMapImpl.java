@@ -1,13 +1,16 @@
 package com.cyngn.exovert.generate.server.rest;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -24,18 +27,6 @@ class TypeMapImpl implements TypeMap {
     private Map<String, Function<CodeBlock, CodeBlock>> typeConverterMapping  = new HashMap<>();
 
     private void bootstrap() {
-
-        // bootstrap with all primitives and their boxed variants
-        typeToClassMapping.put("void", TypeName.VOID);
-        typeToClassMapping.put("boolean", TypeName.BOOLEAN);
-        typeToClassMapping.put("byte", TypeName.BYTE);
-        typeToClassMapping.put("short", TypeName.SHORT);
-        typeToClassMapping.put("int", TypeName.INT);
-        typeToClassMapping.put("long", TypeName.LONG);
-        typeToClassMapping.put("char", TypeName.CHAR);
-        typeToClassMapping.put("float", TypeName.FLOAT);
-        typeToClassMapping.put("double", TypeName.DOUBLE);
-
         typeToClassMapping.put("Object", TypeName.OBJECT);
         typeToClassMapping.put("Void", ClassName.get("java.lang", "Void"));
         typeToClassMapping.put("Boolean", ClassName.get("java.lang", "Boolean"));
@@ -51,63 +42,48 @@ class TypeMapImpl implements TypeMap {
         typeToClassMapping.put("String", ClassName.get("java.lang", "String"));
         typeToClassMapping.put("List", ClassName.get("java.util", "List"));
         typeToClassMapping.put("Map", ClassName.get("java.util", "Map"));
+        typeToClassMapping.put("Set", ClassName.get("java.util", "Set"));
 
         //converters for type
-        // for boolean
-        typeConverterMapping.put("boolean", cb ->
-                CodeBlock.builder().add("$T.parseBoolean(", typeToClassMapping.get("Boolean")).add(cb).addStatement(")").build());
+        // for Boolean
         typeConverterMapping.put("Boolean", cb ->
-                CodeBlock.builder().add("$T.parseBoolean(", typeToClassMapping.get("Boolean")).add(cb).addStatement(")").build());
+                CodeBlock.builder().add("$T.parseBoolean(", typeToClassMapping.get("Boolean")).add(cb).add(")").build());
 
-        // for byte
-        typeConverterMapping.put("byte", cb ->
-                CodeBlock.builder().add("$T.parseByte(", typeToClassMapping.get("Byte")).add(cb).addStatement(")").build());
+        // for Byte
         typeConverterMapping.put("Byte", cb ->
-                CodeBlock.builder().add("$T.parseByte(", typeToClassMapping.get("Byte")).add(cb).addStatement(")").build());
+                CodeBlock.builder().add("$T.parseByte(", typeToClassMapping.get("Byte")).add(cb).add(")").build());
 
-        // for short
-        typeConverterMapping.put("short", cb ->
-                CodeBlock.builder().add("$T.parseShort(", typeToClassMapping.get("Short")).add(cb).addStatement(")").build());
+        // for Short
         typeConverterMapping.put("Short", cb ->
-                CodeBlock.builder().add("$T.parseShort(", typeToClassMapping.get("Short")).add(cb).addStatement(")").build());
+                CodeBlock.builder().add("$T.parseShort(", typeToClassMapping.get("Short")).add(cb).add(")").build());
 
-        // for integer
-        typeConverterMapping.put("int", cb ->
-                CodeBlock.builder().add("$T.parseInt(", typeToClassMapping.get("Integer")).add(cb).addStatement(")").build());
+        // for Integer
         typeConverterMapping.put("Integer", cb ->
-                CodeBlock.builder().add("$T.parseInt(", typeToClassMapping.get("Integer")).add(cb).addStatement(")").build());
+                CodeBlock.builder().add("$T.parseInt(", typeToClassMapping.get("Integer")).add(cb).add(")").build());
 
-        // for float
-        typeConverterMapping.put("float", cb ->
-                CodeBlock.builder().add("$T.parseFloat(", typeToClassMapping.get("Float")).add(cb).addStatement(")").build());
+        // for Float
         typeConverterMapping.put("Float", cb ->
-                CodeBlock.builder().add("$T.parseFloat(", typeToClassMapping.get("Float")).add(cb).addStatement(")").build());
+                CodeBlock.builder().add("$T.parseFloat(", typeToClassMapping.get("Float")).add(cb).add(")").build());
 
-        // for double
-        typeConverterMapping.put("double", cb ->
-                CodeBlock.builder().add("$T.parseDouble(", typeToClassMapping.get("Double")).add(cb).addStatement(")").build());
+        // for Double
         typeConverterMapping.put("Double", cb ->
-                CodeBlock.builder().add("$T.parseDouble(", typeToClassMapping.get("Double")).add(cb).addStatement(")").build());
+                CodeBlock.builder().add("$T.parseDouble(", typeToClassMapping.get("Double")).add(cb).add(")").build());
 
-        // for long
-        typeConverterMapping.put("long", cb ->
-                CodeBlock.builder().add("$T.parseLong(", typeToClassMapping.get("Long")).add(cb).addStatement(")").build());
+        // for Long
         typeConverterMapping.put("Long", cb ->
-                CodeBlock.builder().add("$T.parseLong(", typeToClassMapping.get("Long")).add(cb).addStatement(")").build());
+                CodeBlock.builder().add("$T.parseLong(", typeToClassMapping.get("Long")).add(cb).add(")").build());
 
-        // for char
-        typeConverterMapping.put("char", cb ->
-                CodeBlock.builder().add(cb+".charAt(0)").addStatement(")").build());
+        // for Character
         typeConverterMapping.put("Character", cb ->
-                CodeBlock.builder().add(cb+".charAt(0)").addStatement(")").build());
+                CodeBlock.builder().add(cb+".charAt(0)").add(")").build());
 
         // for Date
         typeConverterMapping.put("Date", cb ->
-                CodeBlock.builder().add("new $T(", typeToClassMapping.get("Date")).add(cb).addStatement(")").build());
+                CodeBlock.builder().add("new $T(", typeToClassMapping.get("Date")).add(cb).add(")").build());
 
         // for String
         typeConverterMapping.put("String", cb ->
-                CodeBlock.builder().add("$L", cb).addStatement(")").build());
+                CodeBlock.builder().add("$L", cb).build());
 
         //Conversion for map and list will be tricky, unless we define our own serialization and use it across the board.
     }
@@ -129,13 +105,24 @@ class TypeMapImpl implements TypeMap {
 
     @Override
     public void registerType(String type, TypeName typeName) {
+        registerType(type, typeName, false);
+    }
+
+    @Override
+    public void registerType(String type, TypeName typeName, boolean isEnum) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
         Preconditions.checkArgument(typeName != null, "TypeName cannot be empty or null");
 
         if (typeToClassMapping.containsKey(type)) {
             throw new IllegalArgumentException(String.format("Type:%s already registered", type));
         }
+
         typeToClassMapping.put(type, typeName);
+
+        if (isEnum) {
+            typeConverterMapping.put(type, cb ->
+                    CodeBlock.builder().add("$T.fromValue(", typeToClassMapping.get(type)).add(cb).add(")").build());
+        }
     }
 
     @Override

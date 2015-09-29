@@ -32,12 +32,34 @@ public class TypeParserTest {
     public void testGetListType() {
         assertEquals("String", TypeParser.getListType("List<String>"));
         assertEquals("T", TypeParser.getListType("List<T>"));
+        assertEquals("string", TypeParser.getListType("List<string>"));
+        assertEquals("string", TypeParser.getListType("list<string>"));
+        assertEquals("String", TypeParser.getListType("list<String>"));
+
+        assertEquals("T", TypeParser.getListType("list<T>"));
 
         exception.expect(IllegalArgumentException.class);
         TypeParser.getListType("NotAList<T>");
 
         exception.expect(IllegalArgumentException.class);
         TypeParser.getListType("NotAList<>");
+    }
+
+    @Test
+    public void testGetSetType() {
+        assertEquals("String", TypeParser.getSetType("Set<String>"));
+        assertEquals("T", TypeParser.getSetType("Set<T>"));
+        assertEquals("string", TypeParser.getSetType("Set<string>"));
+        assertEquals("string", TypeParser.getSetType("set<string>"));
+        assertEquals("String", TypeParser.getSetType("set<String>"));
+
+        assertEquals("T", TypeParser.getSetType("set<T>"));
+
+        exception.expect(IllegalArgumentException.class);
+        TypeParser.getSetType("NotASet<T>");
+
+        exception.expect(IllegalArgumentException.class);
+        TypeParser.getSetType("NotASet<>");
     }
 
     @Test

@@ -34,6 +34,16 @@ public interface TypeMap {
      */
     void registerType(String type, TypeName typeName);
 
+    /**
+     * Registers the type and its type name with TypeMap.
+     * <p>
+     * This can be used by callers to register any custom types and classes and use it
+     *
+     * @param type     - type string
+     * @param typeName - type name
+     * @param isEnum   - whether it is enum or not
+     */
+    void registerType(String type, TypeName typeName, boolean isEnum);
 
     /**
      * Get the type conversion code block to convert {@link String}

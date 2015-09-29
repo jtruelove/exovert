@@ -26,7 +26,6 @@ public class TypeGenerator {
 
     public TypeGenerator(GenerationContext context) {
         this.context = context;
-        this.context.typeMap = TypeMap.create();
         this.methodGenerator = new MethodGenerator(this.context);
         this.classGenerator = new ClassGenerator(this.context, this.methodGenerator);
     }
@@ -64,7 +63,7 @@ public class TypeGenerator {
                         TypeSpec typeSpec =
                             classGenerator.getTypeSpecBuilder(
                                 RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace),
-                                RestGeneratorHelper.getTypeName(classType.name),
+                                RestGeneratorHelper.getTypeName(classType.name, context.typeMap),
                                 classType.fields, classType.immutable, classType.jsonAnnotations)
                                     .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.documentation)).build();
 

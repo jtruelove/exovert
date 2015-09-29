@@ -43,16 +43,16 @@ public class MethodGenerator {
      * Generated code looks like
      * </p>
      * <pre>
-     * public void handlePost(final RoutingContext context) {
+     * public final void handlePost(final RoutingContext context) {
      *     HttpServerRequest request = context.request();
      *     try {
      *         if (request.isEnded()) {
      *             CreateRequest createRequest = JsonUtil.parseJsonToObject(context.getBody().toString(), CreateRequest.class);
-     *             validate(request, createRequest);
+     *             validate(context, createRequest);
      *         } else {
      *             request.bodyHandler(body -> {
      *                 CreateRequest createRequest = JsonUtil.parseJsonToObject(body.toString(), CreateRequest.class);
-     *                 validate(request, createRequest);
+     *                 validate(context, createRequest);
      *             });
      *         }
      *     } catch (Exception ex)  {
@@ -70,6 +70,7 @@ public class MethodGenerator {
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
 
         return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
+            .addModifiers(Modifier.FINAL)
             .addJavadoc("Handles POST request\n")
             .addParameter(RoutingContext.class, "context", Modifier.FINAL)
             .addStatement("$T request = context.request()", HttpServerRequest.class)
@@ -80,7 +81,7 @@ public class MethodGenerator {
                     RestGeneratorHelper.getRequestObjectName(api.name),
                     RestGeneratorHelper.getRequestVariableName(api.name),
                     ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)))
-            .addStatement("validate(request, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+            .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
             .nextControlFlow("else")
             .addCode("request.bodyHandler(body -> " +
                     "{\n")
@@ -89,7 +90,7 @@ public class MethodGenerator {
                     RestGeneratorHelper.getRequestVariableName(api.name),
                     JsonUtil.class,
                     ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)))
-            .addStatement("validate(request, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+            .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
             .addCode("});\n")
             .endControlFlow()
             .nextControlFlow("catch (Exception ex) ")
@@ -106,14 +107,14 @@ public class MethodGenerator {
      * Generated code looks like
      * </p>
      * <pre>
-     * public void handleGet(final RoutingContext context) {
+     * public final void handleGet(final RoutingContext context) {
      *     HttpServerRequest request = context.request();
      *     try {
      *         GetRequest getRequest = new GetRequest();
      *         if (request.getParam("name") != null) {
      *             getRequest.setName(request.getParam("name"));
      *         }
-     *         validate(request, getRequest);
+     *         validate(context, getRequest);
      *     } catch (Exception ex)  {
      *         logger.debug("Bad request, ex:" + ex);
      *         HttpHelper.processResponse(request.response(), HttpResponseStatus.BAD_REQUEST.code());
@@ -130,13 +131,14 @@ public class MethodGenerator {
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
 
         return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
+            .addModifiers(Modifier.FINAL)
             .addJavadoc("Handles GET request\n")
             .addParameter(RoutingContext.class, "context", Modifier.FINAL)
             .addStatement("$T request = context.request()", HttpServerRequest.class)
             .addModifiers(Modifier.PUBLIC)
             .beginControlFlow("try")
             .addCode(getRequestCodeBlock(api, namespace))
-            .addStatement("validate(request, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+            .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
             .nextControlFlow("catch (Exception ex) ")
             .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
             .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
@@ -152,14 +154,14 @@ public class MethodGenerator {
      * </p>
      *
      * <pre>
-     * public void handleDelete(final RoutingContext context) {
+     * public final void handleDelete(final RoutingContext context) {
      *     HttpServerRequest request = context.request();
      *     try {
      *         DeleteRequest deleteRequest = new DeleteRequest();
      *         if (request.getParam("name") != null) {
      *             deleteRequest.setName(request.getParam("name"));
      *         }
-     *         validate(request, deleteRequest);
+     *         validate(context, deleteRequest);
      *     } catch (Exception ex)  {
      *         logger.debug("Bad request, ex:" + ex);
      *         HttpHelper.processResponse(request.response(), HttpResponseStatus.BAD_REQUEST.code());
@@ -175,13 +177,14 @@ public class MethodGenerator {
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
 
         return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
+            .addModifiers(Modifier.FINAL)
             .addJavadoc("Handles DELETE request\n")
             .addParameter(RoutingContext.class, "context", Modifier.FINAL)
             .addStatement("$T request = context.request()", HttpServerRequest.class)
             .addModifiers(Modifier.PUBLIC)
             .beginControlFlow("try")
             .addCode(getRequestCodeBlock(api, namespace))
-            .addStatement("validate(request, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+            .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
             .nextControlFlow("catch (Exception ex) ")
             .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
             .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
@@ -222,9 +225,10 @@ public class MethodGenerator {
             builder.add(" != null) {\n").indent();
             builder.add("$L.$L(",
                     "builder",
-                    field.name);
-            builder.add(context.typeMap.getTypeConverter(field.type,
-                    CodeBlock.builder().add("request.getParam($S)", CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.name)).build()));
+                    RestGeneratorHelper.getFieldName(field.name));
+            builder.add(context.typeMap.getTypeConverter(RestGeneratorHelper.getTypeNameString(field.type),
+                    CodeBlock.builder().add("request.getParam($S)", CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.name)).add(")").build()));
+            builder.add(";\n");
             builder.unindent().add("}\n");
         }
 
@@ -240,12 +244,12 @@ public class MethodGenerator {
      * </p>
      *
      * <pre>
-     *  private final void validate(final HttpServerRequest request, final DeleteRequest deleteRequest) {
+     *  private final void validate(final RoutingContext, final DeleteRequest deleteRequest) {
      *      final ValidationResult validationResult = deleteRequest.validate();
      *      if (ValidationResult.SUCCESS.equals(validationResult)) {
-     *          process(deleteRequest);
+     *          process(context, deleteRequest);
      *      } else {
-     *          HttpHelper.processResponse(request.response(), HttpResponseStatus.BAD_REQUEST.code());
+     *          HttpHelper.processResponse(context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
      *      }
      * }
      * </pre>
@@ -259,7 +263,7 @@ public class MethodGenerator {
 
         return MethodSpec.methodBuilder("validate")
                 .addJavadoc("Handles validation of request\n")
-                .addParameter(HttpServerRequest.class, "request", Modifier.FINAL)
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
                 .addParameter(ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)),
                         RestGeneratorHelper.getRequestVariableName(api.name), Modifier.FINAL)
                 .addModifiers(Modifier.PRIVATE)
@@ -267,9 +271,9 @@ public class MethodGenerator {
                 .addStatement("final $T validationResult = $L.validate()", ValidationResult.class,
                         CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, RestGeneratorHelper.getRequestObjectName(api.name)))
                 .beginControlFlow("if (ValidationResult.SUCCESS.equals(validationResult))")
-                .addStatement("process(request, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+                .addStatement("process(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
                 .nextControlFlow("else")
-                .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                .addStatement("$T.processResponse(context.request().response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
                 .endControlFlow()
                 .build();
     }
@@ -281,7 +285,7 @@ public class MethodGenerator {
      * Generated code looks like
      * </p>
      * <pre>
-     *     public abstract void process(final HttpServerRequest request, final CreateRequest request);
+     *     public abstract void process(final RoutingContext context, final CreateRequest request);
      * </pre>
      * @param api       - api Object
      * @param namespace - package namespace
@@ -293,7 +297,7 @@ public class MethodGenerator {
 
         return MethodSpec.methodBuilder("process")
                 .addJavadoc("Processes the request\n")
-                .addParameter(HttpServerRequest.class, "request", Modifier.FINAL)
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
                 .addParameter(ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)),
                         RestGeneratorHelper.getRequestVariableName(api.name), Modifier.FINAL)
                 .addModifiers(Modifier.ABSTRACT)
