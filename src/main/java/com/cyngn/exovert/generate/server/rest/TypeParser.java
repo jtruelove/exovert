@@ -77,7 +77,7 @@ public class TypeParser {
     /**
      * Gets the element type in list type
      * @param type - type string
-     * @return T if the type is List<T>
+     * @return T if the type is List&lt;T&gt;
      */
     public static String getListType(String type) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
@@ -97,7 +97,7 @@ public class TypeParser {
     /**
      * Gets the key type in map type
      * @param type - type string
-     * @return K if the type is Map<K,V>
+     * @return K if the type is Map&lt;K,V&gt;
      */
     public static String getMapKeyType(String type) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
@@ -117,7 +117,7 @@ public class TypeParser {
     /**
      * Gets the value type in map type
      * @param type - type String
-     * @return V if the type is Map<K,V>
+     * @return V if the type is Map&lt;K,V&gt;
      */
     public static String getMapValueType(String type) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
