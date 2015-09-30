@@ -119,7 +119,7 @@ public class TypeParser {
     /**
      * Gets the element type in set type
      * @param type - type string
-     * @return T if the type is Set<T>
+     * @return T if the type is Set&lt;K,V&gt;
      */
     public static String getSetType(String type) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(type), "type cannot be empty or null");
