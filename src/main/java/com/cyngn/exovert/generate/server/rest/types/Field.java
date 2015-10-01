@@ -1,5 +1,6 @@
-package com.cyngn.exovert.generate.server.types;
+package com.cyngn.exovert.generate.server.rest.types;
 
+import com.cyngn.exovert.generate.server.rest.TypeMap;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -18,16 +19,22 @@ public class Field {
     /**
      * Type of the field.
      *
-     * The type gets mapped to Java type by {@link com.cyngn.exovert.generate.server.TypeMap}
+     * The type gets mapped to Java type by {@link TypeMap}
      */
     @JsonProperty
     public String type;
 
     /**
-     * Whether required or not
+     * Whether required or not. By default, fields are optional.
      */
     @JsonProperty
     public boolean required;
+
+    /**
+     * Default value
+     */
+    @JsonProperty("default_value")
+    public String defaultValue;
 
     /**
      * Validation associated with the field.

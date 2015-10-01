@@ -1,4 +1,4 @@
-package com.cyngn.exovert.generate.server;
+package com.cyngn.exovert.generate.server.rest;
 
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
@@ -34,6 +34,24 @@ public interface TypeMap {
      */
     void registerType(String type, TypeName typeName);
 
+    /**
+     * Registers the type and its type name with TypeMap.
+     * <p>
+     * This can be used by callers to register any custom types and classes and use it
+     *
+     * @param type     - type string
+     * @param typeName - type name
+     * @param isEnum   - whether it is enum or not
+     */
+    void registerType(String type, TypeName typeName, boolean isEnum);
+
+    /**
+     * Checks if the given type is enumerated or not
+     *
+     * @param type - type string
+     * @return true if type is enumerated type, otherwise false
+     */
+    boolean isEnumeratedType(String type);
 
     /**
      * Get the type conversion code block to convert {@link String}

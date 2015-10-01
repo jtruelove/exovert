@@ -14,6 +14,7 @@ group = "com.cyngn.vertx"
 archivesBaseName = "exovert"
 mainClassName = "com.cyngn.exovert.CrudCreator"
 
+
 if (!JavaVersion.current().java8Compatible) {
     throw new IllegalStateException('''A Haiku:
                                       |  This needs Java 8,
@@ -74,10 +75,68 @@ shadowJar {
     manifest {
         attributes 'Main-Class': mainClassName
     }
+
+    dependsOn "test"
 }
 
-run {
-    if (project.hasProperty('args')) {
-        args project.args.split('\\s')
+task generateWrapper {
+    dependsOn "generateRestCreatorWrapper"
+    dependsOn "generateCrudCreatorWrapper"
+}
+
+//TODO: move this to plugin or class and be DRY
+task generateRestCreatorWrapper {
+    dependsOn "shadowJar"
+
+    doFirst {
+        String className = "com.cyngn.exovert.RestCreator"
+        String wrapperName = "RestCreator"
+
+        def binDir = new File(project.buildDir, "bin")
+
+        if (!binDir.exists()) {
+            binDir.mkdirs()
+        }
+
+        File wrapperScript = new File(binDir, wrapperName)
+
+        Writer out = new OutputStreamWriter(new FileOutputStream(wrapperScript), "UTF-8")
+
+        try {
+            out.write("#! /bin/sh\n")
+            out.write("java -cp " + shadowJar.getArchivePath() + " " + className + " \"\$@\"")
+        } finally {
+            out.close()
+        }
+
+        ant.chmod(file: wrapperScript.path, perm: "+x")
+    }
+}
+
+task generateCrudCreatorWrapper {
+    dependsOn "shadowJar"
+
+    doFirst {
+        String className = "com.cyngn.exovert.CrudCreator"
+        String wrapperName = "CrudCreator"
+
+        def binDir = new File(project.buildDir, "bin")
+
+        if (!binDir.exists()) {
+            binDir.mkdirs()
+        }
+
+        File wrapperScript = new File(binDir, wrapperName)
+
+        Writer out = new OutputStreamWriter(new FileOutputStream(wrapperScript), "UTF-8")
+
+        try {
+            out.write("#! /bin/sh\n")
+            out.write("java -cp " + shadowJar.getArchivePath() + " " + className + " \"\$@\"")
+        } finally {
+            out.close()
+        }
+
+        ant.chmod(file: wrapperScript.path, perm: "+x")
     }
 }

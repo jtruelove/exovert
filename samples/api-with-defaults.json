@@ -1,0 +1,100 @@
+{
+  "namespace": "com.cyngn.sample",
+  "apis": [
+    {
+      "name": "sample",
+      "documentation": "Sample API",
+      "path": "/sample",
+      "http_method": "POST",
+      "request": {
+        "fields": [
+          {
+            "name": "double_value",
+            "type": "double",
+            "required": false,
+            "default_value": "1.0"
+          },
+          {
+            "name": "short_value",
+            "type": "short",
+            "required": false,
+            "default_value": "5"
+          },
+          {
+            "name": "string_value",
+            "type": "string",
+            "required": false,
+            "default_value": "These are default notes"
+          },
+          {
+            "name": "integer_value",
+            "type": "integer",
+            "required": false,
+            "default_value": "5000"
+          },
+          {
+            "name": "long_value",
+            "type": "long",
+            "required": false,
+            "default_value": "5000"
+          },
+          {
+            "name": "float_value",
+            "type": "float",
+            "required": false,
+            "default_value": "5.75"
+          },
+          {
+            "name": "character_value",
+            "type": "character",
+            "required": false,
+            "default_value": "A"
+          },
+          {
+            "name": "date_value",
+            "type": "date",
+            "required": false,
+            "default_value": "09/30/2015"
+          },
+          {
+            "name": "enum_type",
+            "type": "enum_type",
+            "required": false,
+            "default_value": "alcoholic"
+          }
+        ]
+      }
+    }
+  ],
+  "data_types": {
+    "enum_types": [
+      {
+        "name": "enum_type",
+        "documentation": "Enumerated type for different types of beer",
+        "values": [
+          {
+            "name": "VALUE_ONE",
+            "value": "value_one"
+          },
+          {
+            "name": "VALUE_TWO",
+            "value": "value_two"
+          }
+        ]
+      }
+    ],
+    "class_types": [
+      {
+        "name": "type_has_string",
+        "documentation": "Example to show Type with String",
+        "immutable": false,
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "data_type_groups":[
+    {
+      "namespace" : "com.cyngn.types.examples.one",
+      "data_types" : {
+        "enum_types": [
+          {
+            "name": "beer_type",
+            "documentation": "Enumerated type for different types of beer",
+            "values": [
+              {
+                "name": "ALCOHOLIC",
+                "value": "alcoholic"
+              },
+              {
+                "name": "NON_ALCOHOLIC",
+                "value": "non_alcoholic"
+              }
+            ]
+          }
+        ],
+        "class_types": [
+          {
+            "name": "type_has_string",
+            "documentation": "Example to show Type with String",
+            "immutable": false,
+            "fields": [
+              {
+                "name": "name",
+                "type": "string",
+                "default_value": "This is default value"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "namespace" : "com.cyngn.types.examples.two",
+      "data_types" : {
+        "enum_types": [
+          {
+            "name": "beer_type",
+            "documentation": "Enumerated type for different types of beer",
+            "values": [
+              {
+                "name": "ALCOHOLIC",
+                "value": "alcoholic"
+              },
+              {
+                "name": "NON_ALCOHOLIC",
+                "value": "non_alcoholic"
+              }
+            ]
+          }
+        ],
+        "class_types": [
+          {
+            "name" : "type_has_immutable_string",
+            "documentation": "Example to show Immutable type with string",
+            "immutable" : true,
+            "fields": [
+              {
+                "name": "names",
+                "type": "list<string>"
+              }
+            ]
+          },
+          {
+            "name" : "type_has_string_with_json_annotations",
+            "documentation": "Example to show Type annotated with Json annotations",
+            "immutable" : false,
+            "json_annotations" : true,
+            "fields": [
+              {
+                "name": "names",
+                "type": "list<string>"
+              }
+            ]
+          },
+          {
+            "name" : "type_has_map",
+            "documentation": "Example to show Type with map field",
+            "immutable" : false,
+            "fields": [
+              {
+                "name": "names",
+                "type": "map<string,string>"
+              }
+            ]
+          },
+          {
+            "name" : "type_has_list",
+            "documentation" : "Example to show Type with list field",
+            "immutable" : false,
+            "fields": [
+              {
+                "name": "names",
+                "type": "list<string>"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

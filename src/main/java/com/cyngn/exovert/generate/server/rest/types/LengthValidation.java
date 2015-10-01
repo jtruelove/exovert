@@ -1,4 +1,4 @@
-package com.cyngn.exovert.generate.server.types;
+package com.cyngn.exovert.generate.server.rest.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

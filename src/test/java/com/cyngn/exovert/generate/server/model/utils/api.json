@@ -1,0 +1,81 @@
+{
+  "namespace" : "com.cyngn.beer",
+  "apis" : [
+    {
+      "name": "get",
+      "documentation": "API to retrieve beer",
+      "path": "/get",
+      "http_method": "GET",
+      "request": {
+        "fields": [
+          {
+            "name": "name",
+            "type": "String",
+            "required": true,
+            "validation": {
+              "length" : {
+                "min" : 1,
+                "max" : 1000
+              }
+            }
+          }
+        ]
+      },
+      "response": {
+        "fields": [
+          {
+            "name": "name",
+            "type": "String",
+            "required": true
+          },
+          {
+            "name": "quantity_in_ounces",
+            "type": "Integer",
+            "required": true
+          },
+          {
+            "name": "price",
+            "type": "Double",
+            "required": true
+          },
+          {
+            "name": "notes",
+            "type": "String",
+            "required": false
+          }
+        ]
+      }
+    }
+  ],
+  "data_types" : {
+    "enum_types": [
+      {
+        "name" : "beer_type",
+        "documentation": "Enumerated type for different types of beer",
+        "values":[
+          {
+            "name" : "ALCOHOLIC",
+            "value" : "alcoholic"
+          },
+          {
+            "name" : "NON_ALCOHOLIC",
+            "value" : "non_alcoholic"
+          }
+        ]
+      }
+    ],
+    "class_types": [
+      {
+        "name" : "type_has_string",
+        "documentation": "Example to show Type with String",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "name",
+            "type": "String"
+          }
+        ]
+      }
+    ]
+  }
+}

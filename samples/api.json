@@ -10,7 +10,7 @@
         "fields": [
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "required": true,
             "validation": {
               "length" : {
@@ -21,18 +21,25 @@
           },
           {
             "name": "quantity_in_ounces",
-            "type": "Integer",
+            "type": "integer",
             "required": true
           },
           {
             "name": "price",
-            "type": "Double",
+            "type": "double",
             "required": true
           },
           {
             "name": "notes",
-            "type": "String",
-            "required": false
+            "type": "string",
+            "required": false,
+            "default_value" : "These are default notes"
+          },
+          {
+            "name": "beer_type",
+            "type": "beer_type",
+            "required": false,
+            "default_value" : "alcoholic"
           }
         ]
       }
@@ -46,7 +53,7 @@
         "fields": [
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "required": true,
             "validation": {
               "length" : {
@@ -61,22 +68,22 @@
         "fields": [
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "required": true
           },
           {
             "name": "quantity_in_ounces",
-            "type": "Integer",
+            "type": "integer",
             "required": true
           },
           {
             "name": "price",
-            "type": "Double",
+            "type": "double",
             "required": true
           },
           {
             "name": "notes",
-            "type": "String",
+            "type": "string",
             "required": false
           }
         ]
@@ -91,7 +98,7 @@
         "fields": [
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "required": true,
             "validation": {
               "length" : {
@@ -104,6 +111,102 @@
       }
     }
   ],
-  "types" : []
-
+  "data_types" : {
+    "enum_types": [
+      {
+        "name" : "beer_type",
+        "documentation": "Enumerated type for different types of beer",
+         "values":[
+           {
+             "name" : "ALCOHOLIC",
+             "value" : "alcoholic"
+           },
+           {
+             "name" : "NON_ALCOHOLIC",
+             "value" : "non_alcoholic"
+           }
+         ]
+      }
+    ],
+    "class_types": [
+      {
+        "name" : "type_has_string",
+        "documentation": "Example to show Type with String",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_other_type",
+        "documentation": "Example to show Type composed with other type",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "other_type",
+            "type": "type_has_string"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_immutable_string",
+        "documentation": "Example to show Immutable type with string",
+        "immutable" : true,
+        "fields": [
+          {
+            "name": "names",
+            "type": "list<string>"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_string_with_json_annotations",
+        "documentation": "Example to show Type annotated with Json annotations",
+        "immutable" : false,
+        "json_annotations" : true,
+        "fields": [
+          {
+            "name": "names",
+            "type": "list<string>"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_map",
+        "documentation": "Example to show Type with map field",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "names",
+            "type": "map<string,string>"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_list",
+        "documentation" : "Example to show Type with list field",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "names",
+            "type": "list<string>"
+          }
+        ]
+      },
+      {
+        "name" : "type_has_set",
+        "documentation" : "Example to show Type with set field",
+        "immutable" : false,
+        "fields": [
+          {
+            "name": "names",
+            "type": "set<string>"
+          }
+        ]
+      }
+    ]
+  }
 }
