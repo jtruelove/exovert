@@ -31,6 +31,12 @@ public class Field {
     public boolean required;
 
     /**
+     * Default value
+     */
+    @JsonProperty("default_value")
+    public String defaultValue;
+
+    /**
      * Validation associated with the field.
      */
     @JsonProperty

@@ -9,6 +9,7 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -25,6 +26,7 @@ class TypeMapImpl implements TypeMap {
 
     private Map<String, TypeName> typeToClassMapping = new HashMap<>();
     private Map<String, Function<CodeBlock, CodeBlock>> typeConverterMapping  = new HashMap<>();
+    private Set<String> enumeratedTypes = new HashSet<>();
 
     private void bootstrap() {
         typeToClassMapping.put("Object", TypeName.OBJECT);
@@ -122,7 +124,13 @@ class TypeMapImpl implements TypeMap {
         if (isEnum) {
             typeConverterMapping.put(type, cb ->
                     CodeBlock.builder().add("$T.fromValue(", typeToClassMapping.get(type)).add(cb).add(")").build());
+            enumeratedTypes.add(type);
         }
+    }
+
+    @Override
+    public boolean isEnumeratedType(String type) {
+        return enumeratedTypes.contains(type);
     }
 
     @Override

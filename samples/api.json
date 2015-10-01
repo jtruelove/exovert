@@ -32,12 +32,14 @@
           {
             "name": "notes",
             "type": "string",
-            "required": false
+            "required": false,
+            "default_value" : "These are default notes"
           },
           {
             "name": "beer_type",
             "type": "beer_type",
-            "required": false
+            "required": false,
+            "default_value" : "alcoholic"
           }
         ]
       }

@@ -27,7 +27,8 @@
             "fields": [
               {
                 "name": "name",
-                "type": "string"
+                "type": "string",
+                "default_value": "This is default value"
               }
             ]
           }

@@ -315,7 +315,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractCreateApi implements RestApi {
     private static final Logger logger = LoggerFactory.getLogger(AbstractCreateApi.class);
 
-    private static final String CREATE_API_PATH = "/create";
+    protected static final String CREATE_API_PATH = "/create";
 
     private final RestApi.RestApiDescriptor[] supportedApi =  {
         new RestApi.RestApiDescriptor(HttpMethod.POST, CREATE_API_PATH, this::handlePost),
@@ -346,11 +346,15 @@ public abstract class AbstractCreateApi implements RestApi {
      * Handles validation of request
      */
     private final void validate(final RoutingContext context, final CreateRequest createRequest) {
+        if (createRequest == null) {
+            HttpHelper.processResponse(context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
+            return;
+        }
         final ValidationResult validationResult = createRequest.validate();
         if (ValidationResult.SUCCESS.equals(validationResult)) {
             process(context, createRequest);
         } else {
-            HttpHelper.processResponse(context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
+            HttpHelper.processResponse(validationResult.errorMsg, context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
         }
     }
 
@@ -362,6 +366,13 @@ public abstract class AbstractCreateApi implements RestApi {
     @Override
     public RestApi.RestApiDescriptor[] supportedApi() {
         return supportedApi;
+    }
+    
+    /**
+     * Returns the http method
+     */
+    protected final HttpMethod getHttpMethod() {
+        return HttpMethod.POST;
     }
 }
 ```
@@ -745,7 +756,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractGetApi implements RestApi {
     private static final Logger logger = LoggerFactory.getLogger(AbstractGetApi.class);
 
-    private static final String GET_API_PATH = "/get";
+    protected static final String GET_API_PATH = "/get";
 
     private final RestApi.RestApiDescriptor[] supportedApi =  {
         new RestApi.RestApiDescriptor(HttpMethod.GET, GET_API_PATH, this::handleGet),
@@ -776,11 +787,15 @@ public abstract class AbstractGetApi implements RestApi {
      * Handles validation of request
      */
     private final void validate(final RoutingContext context, final GetRequest getRequest) {
+        if (getRequest == null) {
+            HttpHelper.processResponse(context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
+            return;
+        }
         final ValidationResult validationResult = getRequest.validate();
         if (ValidationResult.SUCCESS.equals(validationResult)) {
             process(context, getRequest);
         } else {
-            HttpHelper.processResponse(context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
+            HttpHelper.processResponse(validationResult.errorMsg, context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
         }
     }
 
@@ -792,6 +807,13 @@ public abstract class AbstractGetApi implements RestApi {
     @Override
     public RestApi.RestApiDescriptor[] supportedApi() {
         return supportedApi;
+    }
+    
+    /**
+     * Returns the http method
+     */
+    protected final HttpMethod getHttpMethod() {
+        return HttpMethod.GET;
     }
 }
 ```
@@ -949,7 +971,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractDeleteApi implements RestApi {
     private static final Logger logger = LoggerFactory.getLogger(AbstractDeleteApi.class);
 
-    private static final String DELETE_API_PATH = "/delete";
+    protected static final String DELETE_API_PATH = "/delete";
 
     private final RestApi.RestApiDescriptor[] supportedApi =  {
         new RestApi.RestApiDescriptor(HttpMethod.DELETE, DELETE_API_PATH, this::handleDelete),
@@ -977,11 +999,15 @@ public abstract class AbstractDeleteApi implements RestApi {
      * Handles validation of request
      */
     private final void validate(final RoutingContext context, final DeleteRequest deleteRequest) {
+        if (deleteRequest == null) {
+            HttpHelper.processResponse(context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
+            return;
+        }
         final ValidationResult validationResult = deleteRequest.validate();
         if (ValidationResult.SUCCESS.equals(validationResult)) {
             process(context, deleteRequest);
         } else {
-            HttpHelper.processResponse(context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
+            HttpHelper.processResponse(validationResult.errorMsg, context.request().response(), HttpResponseStatus.BAD_REQUEST.code());
         }
     }
 
@@ -993,6 +1019,13 @@ public abstract class AbstractDeleteApi implements RestApi {
     @Override
     public RestApi.RestApiDescriptor[] supportedApi() {
         return supportedApi;
+    }
+    
+    /**
+     * Returns the http method
+     */
+    protected final HttpMethod getHttpMethod() {
+        return HttpMethod.DELETE;
     }
 }
 ```

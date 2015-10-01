@@ -75,7 +75,7 @@ public class TypeParser {
      * @return true if type is list type
      */
     public static boolean isList(String type) {
-        return type.toLowerCase().startsWith("list");
+        return type.toLowerCase().startsWith("list<");
     }
 
     /**
@@ -84,7 +84,7 @@ public class TypeParser {
      * @return true if type is set type
      */
     public static boolean isSet(String type) {
-        return type.toLowerCase().startsWith("set");
+        return type.toLowerCase().startsWith("set<");
     }
 
     /**
@@ -93,7 +93,7 @@ public class TypeParser {
      * @return true if type is map type
      */
     public static boolean isMap(String type) {
-        return type.toLowerCase().startsWith("map");
+        return type.toLowerCase().startsWith("map<");
     }
 
     /**

@@ -15,6 +15,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang.StringUtils;
@@ -268,12 +269,16 @@ public class MethodGenerator {
                         RestGeneratorHelper.getRequestVariableName(api.name), Modifier.FINAL)
                 .addModifiers(Modifier.PRIVATE)
                 .addModifiers(Modifier.FINAL)
+                .beginControlFlow("if ($L == null)", RestGeneratorHelper.getRequestVariableName(api.name))
+                .addStatement("$T.processResponse(context.request().response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                .addStatement("return")
+                .endControlFlow()
                 .addStatement("final $T validationResult = $L.validate()", ValidationResult.class,
                         CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, RestGeneratorHelper.getRequestObjectName(api.name)))
                 .beginControlFlow("if (ValidationResult.SUCCESS.equals(validationResult))")
                 .addStatement("process(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
                 .nextControlFlow("else")
-                .addStatement("$T.processResponse(context.request().response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                .addStatement("$T.processResponse(validationResult.errorMsg, context.request().response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
                 .endControlFlow()
                 .build();
     }
@@ -322,6 +327,25 @@ public class MethodGenerator {
                 .returns(TypeName.get(RestApi.RestApiDescriptor[].class))
                 .addModifiers(Modifier.PUBLIC)
                 .build();
+    }
+
+    MethodSpec getGetHttpMethod(String httpMethod) {
+        MethodSpec.Builder methodBuilder =
+                MethodSpec.methodBuilder("getHttpMethod")
+                .addJavadoc("Returns the http method\n")
+                .addModifiers(Modifier.FINAL, Modifier.PROTECTED)
+                .returns(HttpMethod.class);
+
+
+        if (httpMethod.equalsIgnoreCase(Constants.HTTP_METHOD_POST)) {
+            methodBuilder.addStatement("return $T.POST", HttpMethod.class);
+        } else if (httpMethod.equalsIgnoreCase(Constants.HTTP_METHOD_GET)) {
+            methodBuilder.addStatement("return $T.GET", HttpMethod.class);
+        } else if (httpMethod.equalsIgnoreCase(Constants.HTTP_METHOD_DELETE)) {
+            methodBuilder.addStatement("return $T.DELETE", HttpMethod.class);
+        }
+
+        return methodBuilder.build();
     }
 
     /**
@@ -496,13 +520,26 @@ public class MethodGenerator {
     /**
      * Returns MethodSpec for Object.toString() method
      */
-    MethodSpec getToStringCodeSpec() {
-        return MethodSpec.methodBuilder("toString")
+    MethodSpec getToStringCodeSpec(String className, List<String> fieldNames) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("toString")
                 .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(context.typeMap.getTypeName("String"))
-                .addStatement(" return $T.toString(this)", Objects.class)
-                .build();
+                .returns(String.class)
+                .addModifiers(Modifier.PUBLIC);
+
+        builder.addCode("return $S $L\n", className + "{", "+");
+        boolean first = true;
+        for (String fieldName : fieldNames) {
+            String fieldStr = fieldName + "=";
+            if(!first) {
+                fieldStr = ", " + fieldStr;
+            } else {
+                first = false;
+            }
+
+            builder.addCode("$S + $N +\n", fieldStr, fieldName);
+        }
+        builder.addStatement("$S", "}");
+        return builder.build();
     }
 
     /**

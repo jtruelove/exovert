@@ -46,6 +46,14 @@ public interface TypeMap {
     void registerType(String type, TypeName typeName, boolean isEnum);
 
     /**
+     * Checks if the given type is enumerated or not
+     *
+     * @param type - type string
+     * @return true if type is enumerated type, otherwise false
+     */
+    boolean isEnumeratedType(String type);
+
+    /**
      * Get the type conversion code block to convert {@link String}
      * to type
      * @param type - type String

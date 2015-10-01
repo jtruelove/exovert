@@ -50,7 +50,7 @@ public class ClassGenerator {
      * <pre>
      * public abstract class AbstractGetApi implements RestApi {
      *     private static final Logger logger = LoggerFactory.getLogger(AbstractGetApi.class);
-     *     private static final String GET_API_PATH = "/get";
+     *     protected static final String GET_API_PATH = "/get";
      *     private final RestApi.RestApiDescriptor[] supportedApi =  {
      *         new RestApi.RestApiDescriptor(HttpMethod.GET, GET_API_PATH, this::handleGet),
      *     };
@@ -65,6 +65,10 @@ public class ClassGenerator {
      *    @Override
      *    public RestApi.RestApiDescriptor[] supportedApi() {
      *        return supportedApi;
+     *    }
+     *
+     *    protected final HttpMethod getHttpMethod() {
+     *        return HttpMethod.POST;
      *    }
      * }
      * </pre>
@@ -97,6 +101,7 @@ public class ClassGenerator {
         apiBuilder.addMethod(methodGenerator.getValidateMethodSpec(api, namespace));
         apiBuilder.addMethod(methodGenerator.getProcessMethodSpec(api, namespace));
         apiBuilder.addMethod(methodGenerator.getSupportedApi());
+        apiBuilder.addMethod(methodGenerator.getGetHttpMethod(api.httpMethod));
 
         return apiBuilder.build();
     }
@@ -116,7 +121,7 @@ public class ClassGenerator {
     /**
      * Generates full blown {@link com.squareup.javapoet.TypeSpec.Builder} with
      *
-     * private fields with json annotations if asked for.
+     * private fields with json annotations if asked for and default value, if specified.
      * Empty constructor (for Json serialization)
      * Constructor with all parameters
      * Constructor with Builder object
@@ -163,6 +168,7 @@ public class ClassGenerator {
 
         for (Field field : fields) {
             String fieldName = RestGeneratorHelper.getFieldName(field.name);
+            String fieldType = RestGeneratorHelper.getTypeName(field.type, context.typeMap);
             TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(field.type, context.typeMap),
                     context.typeMap);
 
@@ -170,6 +176,45 @@ public class ClassGenerator {
             FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(fieldTypeName, fieldName)
                         .addModifiers(Modifier.PRIVATE);
 
+            // check if both required and default is not set at same time
+            if (field.required && field.defaultValue != null) {
+                throw new IllegalArgumentException("Field: " + field.name + " contain both required and default value");
+            }
+
+            // set the default value in case we need default value.
+            if (field.defaultValue != null) {
+                if (fieldType.equals("Boolean")) {
+                    fieldSpecBuilder.initializer("$L", Boolean.parseBoolean(field.defaultValue));
+                } else if (fieldType.equals("Byte")) {
+                    fieldSpecBuilder.initializer("$L", Byte.parseByte(field.defaultValue));
+                } else if (fieldType.equals("Short")) {
+                    fieldSpecBuilder.initializer("$L", Short.parseShort(field.defaultValue));
+                } else if (fieldType.equals("Integer")) {
+                    fieldSpecBuilder.initializer("$L", Integer.parseInt(field.defaultValue));
+                } else if (fieldType.equals("Long")) {
+                    fieldSpecBuilder.initializer("$LL", Long.parseLong(field.defaultValue));
+                } else if (fieldType.equals("Float")) {
+                    fieldSpecBuilder.initializer("$Lf", Float.parseFloat(field.defaultValue));
+                } else if (fieldType.equals("Double")) {
+                    fieldSpecBuilder.initializer("$L", Double.parseDouble(field.defaultValue));
+                } else if (fieldType.equals("String")) {
+                    fieldSpecBuilder.initializer("$S", field.defaultValue);
+                } else if (fieldType.equals("Character")) {
+                    if (field.defaultValue.length() > 1) {
+                        throw new IllegalArgumentException("Invalid value " + field.defaultValue + " for Character");
+                    } else {
+                        fieldSpecBuilder.initializer("'$L'", field.defaultValue);
+                    }
+                } else if (fieldType.equals("Date")) {
+                    fieldSpecBuilder.initializer(context.typeMap.getTypeConverter(fieldType,
+                            CodeBlock.builder().add("$S", field.defaultValue).build()));
+                } else if (context.typeMap.isEnumeratedType(fieldType)) {
+                    fieldSpecBuilder.initializer(context.typeMap.getTypeConverter(fieldType,
+                            CodeBlock.builder().add("$S", field.defaultValue).build()));
+                } else {
+                    throw new IllegalArgumentException("Default only supported for autoboxed, date, string, enum types ");
+                }
+            }
             // augment json annotations.
             if (jsonAnnotations) {
                 fieldSpecBuilder.addAnnotation(AnnotationSpec.builder(JsonProperty.class)
@@ -224,7 +269,7 @@ public class ClassGenerator {
         builder.addMethod(methodGenerator.getEqualsCodeSpec(name, fieldNames));
 
         // add toString method
-        builder.addMethod(methodGenerator.getToStringCodeSpec());
+        builder.addMethod(methodGenerator.getToStringCodeSpec(name, fieldNames));
 
         return builder;
     }
@@ -277,7 +322,6 @@ public class ClassGenerator {
                     .addStatement("return this");
 
             builder.addMethod(methodSpecBuilder.build());
-
         }
 
         // add build() method
@@ -383,7 +427,7 @@ public class ClassGenerator {
 
         String apiConstant = api.name.toUpperCase() + Constants.API_PATH;
 
-        builder.addField(FieldSpec.builder(String.class, apiConstant, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+        builder.addField(FieldSpec.builder(String.class, apiConstant, Modifier.PROTECTED, Modifier.STATIC, Modifier.FINAL)
                 .initializer("$S", api.path).build());
 
         CodeBlock block = CodeBlock.builder().beginControlFlow("")
@@ -480,5 +524,4 @@ public class ClassGenerator {
 
         return enumTypespecBuilder.build();
     }
-
 }
