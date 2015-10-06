@@ -8,6 +8,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'application'
+apply plugin: 'maven'
 
 version = '0.1.0'
 group = "com.cyngn.vertx"
@@ -35,7 +36,7 @@ dependencies {
     compile "com.google.guava:guava:18.0"
     compile "commons-lang:commons-lang:2.6"
     compile "net.sf.jopt-simple:jopt-simple:4.9"
-    compile "com.cyngn.vertx:vertx-util:0.5.4"
+    compile "com.cyngn.vertx:vertx-util:0.5.7"
     compile "com.englishtown.vertx:vertx-cassandra:3.0.0"
     compile "com.englishtown.vertx:vertx-cassandra-mapping:3.0.0"
     compile "com.squareup:javapoet:1.2.0"
@@ -140,3 +141,4 @@ task generateCrudCreatorWrapper {
         ant.chmod(file: wrapperScript.path, perm: "+x")
     }
 }
+

@@ -42,33 +42,31 @@ public class TypeGenerator {
 
         // generate for data type group
         for (DataTypeGroup dataTypeGroup : spec.dataTypeGroups) {
-            if (dataTypeGroup.dataTypes != null) {
-                // recreate the type map on every group to avoid collision across packages.
-                context.typeMap = TypeMap.create();
+            // recreate the type map on every group to avoid collision across packages.
+            context.typeMap = TypeMap.create();
 
-                // generate enums
-                if (dataTypeGroup.dataTypes.enumTypes != null) {
-                    for (EnumType enumType : dataTypeGroup.dataTypes.enumTypes) {
+            // generate enums
+            if (dataTypeGroup.enumTypes != null) {
+                for (EnumType enumType : dataTypeGroup.enumTypes) {
 
-                        TypeSpec typeSpec = classGenerator
-                                .getEnumTypeSpec(RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace), enumType);
+                    TypeSpec typeSpec = classGenerator
+                            .getEnumTypeSpec(RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace), enumType);
 
-                        generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace), typeSpec);
-                    }
+                    generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace), typeSpec);
                 }
+            }
 
-                // generate class types
-                if (dataTypeGroup.dataTypes.classTypes != null) {
-                    for (ClassType classType : dataTypeGroup.dataTypes.classTypes) {
-                        TypeSpec typeSpec =
+            // generate class types
+            if (dataTypeGroup.classTypes != null) {
+                for (ClassType classType : dataTypeGroup.classTypes) {
+                    TypeSpec typeSpec =
                             classGenerator.getTypeSpecBuilder(
-                                RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace),
-                                RestGeneratorHelper.getTypeName(classType.name, context.typeMap),
-                                classType.fields, classType.immutable, classType.jsonAnnotations)
+                                    RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace),
+                                    RestGeneratorHelper.getTypeName(classType.name, context.typeMap),
+                                    classType.fields, classType.immutable, classType.jsonAnnotations)
                                     .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.documentation)).build();
 
-                        generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace), typeSpec);
-                    }
+                    generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace), typeSpec);
                 }
             }
         }

@@ -66,35 +66,38 @@
       }
     }
   ],
-  "data_types": {
-    "enum_types": [
-      {
-        "name": "enum_type",
-        "documentation": "Enumerated type for different types of beer",
-        "values": [
-          {
-            "name": "VALUE_ONE",
-            "value": "value_one"
-          },
-          {
-            "name": "VALUE_TWO",
-            "value": "value_two"
-          }
-        ]
-      }
-    ],
-    "class_types": [
-      {
-        "name": "type_has_string",
-        "documentation": "Example to show Type with String",
-        "immutable": false,
-        "fields": [
-          {
-            "name": "name",
-            "type": "string"
-          }
-        ]
-      }
-    ]
-  }
+  "data_type_groups":[
+    {
+      "namespace" : "com.cyngn.sample.external",
+      "enum_types": [
+        {
+          "name": "enum_type",
+          "documentation": "Enumerated type for different types of beer",
+          "values": [
+            {
+              "name": "VALUE_ONE",
+              "value": "value_one"
+            },
+            {
+              "name": "VALUE_TWO",
+              "value": "value_two"
+            }
+          ]
+        }
+      ],
+      "class_types": [
+        {
+          "name": "type_has_string",
+          "documentation": "Example to show Type with String",
+          "immutable": false,
+          "fields": [
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

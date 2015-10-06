@@ -2,6 +2,7 @@ package com.cyngn.exovert.generate.server.rest;
 
 import com.cyngn.exovert.generate.server.rest.types.Api;
 import com.cyngn.exovert.generate.server.rest.types.ClassType;
+import com.cyngn.exovert.generate.server.rest.types.DataTypeGroup;
 import com.cyngn.exovert.generate.server.rest.types.EnumType;
 import com.cyngn.exovert.generate.server.rest.utils.Constants;
 import com.cyngn.exovert.generate.server.rest.utils.RestGeneratorHelper;
@@ -41,49 +42,53 @@ class CommonRestGenerator {
         Preconditions.checkArgument(spec != null, "Interface specification cannot be null");
 
         // generate types
-        if (spec.dataTypes != null) {
-            if (spec.dataTypes.enumTypes != null) {
-                for (EnumType enumType : spec.dataTypes.enumTypes) {
+        if (spec.dataTypeGroups != null) {
 
-                    TypeSpec typeSpec = classGenerator
-                            .getEnumTypeSpec(RestGeneratorHelper.getTypesNamespace(spec.namespace), enumType);
-
-                    generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(spec.namespace), typeSpec);
+            // generate for data type group
+            for (DataTypeGroup dataTypeGroup : spec.dataTypeGroups) {
+                // generate enums
+                if (dataTypeGroup.enumTypes != null) {
+                    for (EnumType enumType : dataTypeGroup.enumTypes) {
+                        String namespace = getPackageNamespace(context, dataTypeGroup.namespace);
+                        TypeSpec typeSpec = classGenerator.getEnumTypeSpec(namespace, enumType);
+                        generateClassFromTypespec(namespace, typeSpec);
+                    }
                 }
-            }
 
-            if (spec.dataTypes.classTypes != null) {
-                for (ClassType classType : spec.dataTypes.classTypes) {
-                    TypeSpec typeSpec =
-                            classGenerator.getTypeSpecBuilder(
-                                    RestGeneratorHelper.getTypesNamespace(spec.namespace),
-                                    RestGeneratorHelper.getTypeName(classType.name, context.typeMap),
-                                    classType.fields, classType.immutable, classType.jsonAnnotations)
-                                    .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.documentation)).build();
+                // generate class types
+                if (dataTypeGroup.classTypes != null) {
+                    for (ClassType classType : dataTypeGroup.classTypes) {
+                        String namespace = getPackageNamespace(context, dataTypeGroup.namespace);
+                        TypeSpec typeSpec =
+                                classGenerator.getTypeSpecBuilder(
+                                        namespace,
+                                        RestGeneratorHelper.getTypeName(classType.name, context.typeMap),
+                                        classType.fields, classType.immutable, classType.jsonAnnotations)
+                                        .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.documentation)).build();
 
-                    generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(spec.namespace), typeSpec);
+                        generateClassFromTypespec(namespace, typeSpec);
+                    }
                 }
             }
         }
 
         for (Api api : spec.apis) {
+            String namespace = getPackageNamespace(context, RestGeneratorHelper.getTypesNamespace(spec.namespace));
             // generate request
-            TypeSpec typeSpec = classGenerator.getRequestTypeSpec(
-                    RestGeneratorHelper.getTypesNamespace(spec.namespace),
-                    RestGeneratorHelper.getRequestObjectName(api.name),
-                    api.request.fields);
+            if(api.request != null) {
+                TypeSpec typeSpec = classGenerator.getRequestTypeSpec(namespace, api);
+                generateClassFromTypespec(namespace, typeSpec);
+            }
 
-            generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(spec.namespace), typeSpec);
-
-            // for APIs with void response, do not generate response objects
+            // generate response
             if(api.response != null) {
                 // generate response
-                typeSpec = classGenerator.getResponseTypeSpec(
-                        RestGeneratorHelper.getTypesNamespace(spec.namespace),
+                TypeSpec typeSpec = classGenerator.getResponseTypeSpec(
+                        namespace,
                         RestGeneratorHelper.getResponseObjectName(api.name),
                         api.response.fields);
 
-                generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(spec.namespace), typeSpec);
+                generateClassFromTypespec(namespace, typeSpec);
             }
         }
     }
@@ -106,5 +111,12 @@ class CommonRestGenerator {
         } else {
             javaFile.writeTo(RestGeneratorHelper.getDirectoryPath(context.outputDirectory));
         }
+    }
+
+    public String getPackageNamespace(GenerationContext context, String namespace) {
+        if (context.client) {
+            return namespace + ".client";
+        }
+        return namespace;
     }
 }

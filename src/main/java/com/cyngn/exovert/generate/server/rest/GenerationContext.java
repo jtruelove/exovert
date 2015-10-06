@@ -17,4 +17,6 @@ class GenerationContext {
             RestGeneratorHelper.getGeneratedSourceDirectory();
 
     public String specFilePath = "api.json";
+
+    public boolean client;
 }

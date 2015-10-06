@@ -61,8 +61,9 @@ public class RestCreator {
             if(optionSet.has(spec)) {
                 builder.withSpecFilePath(spec.value(optionSet));
             }
-            builder.build().generate();
 
+            // generate the server code
+            builder.build().generate();
         } catch (Exception e) {
             e.printStackTrace();
         }

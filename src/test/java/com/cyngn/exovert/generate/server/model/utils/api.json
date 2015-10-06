@@ -47,35 +47,38 @@
       }
     }
   ],
-  "data_types" : {
-    "enum_types": [
-      {
-        "name" : "beer_type",
-        "documentation": "Enumerated type for different types of beer",
-        "values":[
-          {
-            "name" : "ALCOHOLIC",
-            "value" : "alcoholic"
-          },
-          {
-            "name" : "NON_ALCOHOLIC",
-            "value" : "non_alcoholic"
-          }
-        ]
-      }
-    ],
-    "class_types": [
-      {
-        "name" : "type_has_string",
-        "documentation": "Example to show Type with String",
-        "immutable" : false,
-        "fields": [
-          {
-            "name": "name",
-            "type": "String"
-          }
-        ]
-      }
-    ]
-  }
+  "data_type_groups":[
+    {
+      "namespace" : "com.cyngn.beer.external",
+      "enum_types": [
+        {
+          "name" : "beer_type",
+          "documentation": "Enumerated type for different types of beer",
+          "values":[
+            {
+              "name" : "ALCOHOLIC",
+              "value" : "alcoholic"
+            },
+            {
+              "name" : "NON_ALCOHOLIC",
+              "value" : "non_alcoholic"
+            }
+          ]
+        }
+      ],
+      "class_types": [
+        {
+          "name" : "type_has_string",
+          "documentation": "Example to show Type with String",
+          "immutable" : false,
+          "fields": [
+            {
+              "name": "name",
+              "type": "String"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
