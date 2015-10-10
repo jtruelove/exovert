@@ -256,8 +256,10 @@ public class ClassGenerator {
         // add empty constructor for Json serialization
         builder.addMethod(methodGenerator.getEmptyConstructorSpec());
 
-        // add constructor with all parameters
-        builder.addMethod(constructorSpec.build());
+        if (!fields.isEmpty()) {
+            // add constructor with all parameters
+            builder.addMethod(constructorSpec.build());
+        }
 
         // add constructor with all builder
         builder.addMethod(constructorWithBuildObjectSpec.build());

@@ -588,7 +588,7 @@ public class MethodGenerator {
             objectsEqualsList.add("Objects.equals(" + fieldName + ", other." + fieldName + ")");
         }
 
-        String objectEqualsString = Joiner.on(" &&\n").join(objectsEqualsList);
+        String objectEqualsString = objectsEqualsList.isEmpty() ? "true" : Joiner.on(" &&\n").join(objectsEqualsList);
 
         return equalsBuilder.beginControlFlow( "if (obj == this) ")
                 .addStatement("return true")
