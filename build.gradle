@@ -74,8 +74,10 @@ artifacts {
 shadowJar {
     classifier = 'fat'
     manifest {
-        attributes 'Main-Class': mainClassName
-    }
+        attributes 'Main-Class': mainClassName,
+                   'Implementation-Title': archivesBaseName,
+                   'Implementation-Version': version
+	}
 
     dependsOn "test"
 }
