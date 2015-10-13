@@ -9,10 +9,17 @@ import com.datastax.driver.core.UserType;
 import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.Field;
+import com.datastax.driver.mapping.annotations.Frozen;
+import com.datastax.driver.mapping.annotations.FrozenKey;
 import com.datastax.driver.mapping.annotations.FrozenValue;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.google.common.base.CaseFormat;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -143,7 +150,7 @@ public class EntityGeneratorHelper {
             spec = FieldSpec.builder(result.type, fieldName, Modifier.PUBLIC);
         }
 
-        if(hasFrozen) { spec.addAnnotation(getFrozenAnnotation()); }
+        if(hasFrozen) { spec.addAnnotation(getFrozenAnnotation(type)); }
         if (isUdtClass) { spec.addAnnotation(getFieldAnnotation(field)); }
         else { spec.addAnnotation(getColumnAnnotation(field)); }
         spec.addAnnotation(MetaData.getJsonAnnotation(field));
@@ -182,11 +189,44 @@ public class EntityGeneratorHelper {
     }
 
     /**
+     * Get a FrozenKey annotation for a field.
+     * @return the annotation
+     */
+    public static AnnotationSpec getFrozenKeyAnnotation() {
+        return AnnotationSpec.builder(FrozenKey.class).build();
+    }
+
+    /**
      * Get a FrozenValue annotation for a field.
      * @return the annotation
      */
-    public static AnnotationSpec getFrozenAnnotation() {
+    public static AnnotationSpec getFrozenValueAnnotation() {
         return AnnotationSpec.builder(FrozenValue.class).build();
+    }
+
+    /**
+     * Get the Frozen("...") annotation for a field
+     * @param type
+     * @return
+     */
+    private static AnnotationSpec getFrozenAnnotation(DataType type) {
+        AnnotationSpec.Builder builder = AnnotationSpec.builder(Frozen.class);
+        DataType unfrozen = type;
+        if(type.isCollection() && type.isFrozen()) {
+            // top level collections don't need a wrapping frozen<...> as they can trip the datastax driver
+            if (type.getName().equals(DataType.Name.SET)) {
+                // type arguments always have one element for sets
+                unfrozen = DataType.set(type.getTypeArguments().get(0));
+            } else if (type.getName().equals(DataType.Name.LIST)) {
+                // type arguments always have one element for lists
+                unfrozen = DataType.list(type.getTypeArguments().get(0));
+            } else if (type.getName().equals(DataType.Name.MAP)) {
+                // type arguments always have two elements for maps
+                unfrozen = DataType.map(type.getTypeArguments().get(0), type.getTypeArguments().get(1));
+            }
+        }
+        builder.addMember("value", "$S", unfrozen);
+        return builder.build();
     }
 
     /**
