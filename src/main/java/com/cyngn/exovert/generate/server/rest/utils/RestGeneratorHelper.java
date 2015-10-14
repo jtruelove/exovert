@@ -7,6 +7,8 @@ import com.cyngn.exovert.generate.server.rest.TypeMap;
 import com.cyngn.exovert.generate.server.rest.TypeParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * Rest generator Helper methods for {@link RestServerGenerator}
@@ -25,6 +29,13 @@ import java.util.Scanner;
 public class RestGeneratorHelper {
     private static final Logger logger = LoggerFactory.getLogger(RestGeneratorHelper.class);
     private static ObjectMapper mapper = new ObjectMapper();
+
+    private static Map<String, String> handlesMap = ImmutableMap.of(
+            Constants.HTTP_METHOD_GET, Constants.HANDLE_GET, Constants.HTTP_METHOD_POST, Constants.HANDLE_POST,
+            Constants.HTTP_METHOD_DELETE, Constants.HANDLE_DELETE);
+
+    private static Set<String> supportedHttpMethods = ImmutableSet.of(
+            Constants.HTTP_METHOD_GET, Constants.HTTP_METHOD_POST, Constants.HTTP_METHOD_DELETE);
 
     public static String getGeneratedSourceDirectory() {
         return Constants.BUILD_DIRECTORY + "/"  + Constants.GENERATED_SRC_DIRECTORY;
@@ -107,15 +118,27 @@ public class RestGeneratorHelper {
     }
 
     public static String getHandlerName(String httpMethod) {
-        if (httpMethod.equalsIgnoreCase(Constants.HTTP_METHOD_GET)) {
-            return Constants.HANDLE_GET;
-        } else if(httpMethod.equalsIgnoreCase(Constants.HTTP_METHOD_POST)) {
-            return Constants.HANDLE_POST;
-        } else if(httpMethod.equalsIgnoreCase(Constants.HTTP_METHOD_DELETE)) {
-            return Constants.HANDLE_DELETE;
+        String handlerName = handlesMap.get(httpMethod.toUpperCase());
+        if (handlerName == null) {
+            throw new IllegalArgumentException("Invalid or unsupported httpMethod: " + httpMethod);
+        }
+        return handlerName;
+    }
+
+    public static String getHttpMethod(String httpMethod) {
+        if (supportedHttpMethods.contains(httpMethod.toUpperCase())) {
+            return httpMethod.toUpperCase();
         } else {
             throw new IllegalArgumentException("Invalid or unsupported httpMethod: " + httpMethod);
         }
+    }
+
+    public static String getServiceClientName(String serviceName) {
+        return serviceName + Constants.CLIENT_SUFFIX;
+    }
+
+    public static String getCallApiMethodName(String apiName) {
+        return Constants.CALL_PREFIX + getUpperCamelCaseFromSnakeCase(apiName);
     }
 
     public static InterfaceSpec loadSpecFromFile(String filename) throws Exception {

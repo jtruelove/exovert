@@ -51,7 +51,6 @@ public class RestServerGenerator {
         }
     }
 
-
     /**
      * Get the instance to {@link RestServerGenerator.Builder}
      *

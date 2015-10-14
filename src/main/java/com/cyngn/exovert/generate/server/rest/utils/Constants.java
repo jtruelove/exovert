@@ -41,4 +41,9 @@ public class Constants {
     public static final String HTTP_METHOD_GET = "GET";
     public static final String HTTP_METHOD_POST = "POST";
     public static final String HTTP_METHOD_DELETE = "DELETE";
+
+    // client constants
+    public static final String CLIENT_SUFFIX = "Client";
+    public static final String SERVICE_CLIENT_FIELD_NAME = "serviceClient";
+    public static final String CALL_PREFIX = "call";
 }

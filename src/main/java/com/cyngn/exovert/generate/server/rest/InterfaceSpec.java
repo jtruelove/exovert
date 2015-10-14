@@ -1,7 +1,7 @@
 package com.cyngn.exovert.generate.server.rest;
 
 import com.cyngn.exovert.generate.server.rest.types.Api;
-import com.cyngn.exovert.generate.server.rest.types.DataTypes;
+import com.cyngn.exovert.generate.server.rest.types.DataTypeGroup;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -15,6 +15,18 @@ import java.util.List;
  */
 public class InterfaceSpec {
     /**
+     * Server name
+     */
+    @JsonProperty
+    public String name;
+
+    /**
+     * Media type
+     */
+    @JsonProperty("media_type")
+    public String mediaType;
+
+    /**
      * package namespace
      */
     @JsonProperty
@@ -27,8 +39,10 @@ public class InterfaceSpec {
     public List<Api> apis;
 
     /**
-     * List of {@link DataTypes}
+     * List of {@link DataTypeGroup}
+     *
+     * {@link DataTypeGroup} represents the set of datatypes in package namespace.
      */
-    @JsonProperty("data_types")
-    public DataTypes dataTypes;
+    @JsonProperty("data_type_groups")
+    public List<DataTypeGroup> dataTypeGroups;
 }

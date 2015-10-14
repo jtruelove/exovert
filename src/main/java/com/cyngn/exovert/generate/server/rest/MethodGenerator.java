@@ -4,6 +4,7 @@ import com.cyngn.exovert.generate.server.rest.types.Api;
 import com.cyngn.exovert.generate.server.rest.types.Field;
 import com.cyngn.exovert.generate.server.rest.utils.Constants;
 import com.cyngn.exovert.generate.server.rest.utils.RestGeneratorHelper;
+import com.cyngn.vertx.validation.ValidationResult;
 import com.cyngn.vertx.web.HttpHelper;
 import com.cyngn.vertx.web.JsonUtil;
 import com.cyngn.vertx.web.RestApi;
@@ -70,35 +71,48 @@ public class MethodGenerator {
         Preconditions.checkArgument(api != null, "api == null");
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
 
-        return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
-            .addModifiers(Modifier.FINAL)
+        MethodSpec.Builder methodSpecBuilder = MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
+            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addJavadoc("Handles POST request\n")
-            .addParameter(RoutingContext.class, "context", Modifier.FINAL)
-            .addStatement("$T request = context.request()", HttpServerRequest.class)
-            .addModifiers(Modifier.PUBLIC)
-            .beginControlFlow("try")
-            .beginControlFlow("if (request.isEnded())")
-            .addStatement("$L $L = JsonUtil.parseJsonToObject(context.getBody().toString(), $T.class)",
-                    RestGeneratorHelper.getRequestObjectName(api.name),
-                    RestGeneratorHelper.getRequestVariableName(api.name),
-                    ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)))
-            .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
-            .nextControlFlow("else")
-            .addCode("request.bodyHandler(body -> " +
-                    "{\n")
-            .addStatement("$L $L = $T.parseJsonToObject(body.toString(), $T.class)",
-                    RestGeneratorHelper.getRequestObjectName(api.name),
-                    RestGeneratorHelper.getRequestVariableName(api.name),
-                    JsonUtil.class,
-                    ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)))
-            .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
-            .addCode("});\n")
-            .endControlFlow()
-            .nextControlFlow("catch (Exception ex) ")
-            .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
-            .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
-            .endControlFlow()
-            .build();
+            .addParameter(RoutingContext.class, "context", Modifier.FINAL);
+
+
+        if (api.request == null) {
+            // api doesn't have any request
+            methodSpecBuilder.beginControlFlow("try")
+                .addStatement("process(context)")
+                .nextControlFlow("catch (Exception ex) ")
+                .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
+                .addStatement("$T.processResponse(context.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                .endControlFlow();
+        } else {
+            // api have request object
+            methodSpecBuilder.addStatement("$T request = context.request()", HttpServerRequest.class)
+                .beginControlFlow("try")
+                .beginControlFlow("if (request.isEnded())")
+                .addStatement("$L $L = JsonUtil.parseJsonToObject(context.getBody().toString(), $T.class)",
+                        RestGeneratorHelper.getRequestObjectName(api.name),
+                        RestGeneratorHelper.getRequestVariableName(api.name),
+                        ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)))
+                .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+                .nextControlFlow("else")
+                .addCode("request.bodyHandler(body -> " +
+                        "{\n")
+                .addStatement("$L $L = $T.parseJsonToObject(body.toString(), $T.class)",
+                        RestGeneratorHelper.getRequestObjectName(api.name),
+                        RestGeneratorHelper.getRequestVariableName(api.name),
+                        JsonUtil.class,
+                        ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace),
+                        RestGeneratorHelper.getRequestObjectName(api.name)))
+                .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+                .addCode("});\n")
+                .endControlFlow()
+                .nextControlFlow("catch (Exception ex) ")
+                .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
+                .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                .endControlFlow();
+        }
+        return methodSpecBuilder.build();
     }
 
     /**
@@ -131,20 +145,29 @@ public class MethodGenerator {
         Preconditions.checkArgument(api != null, "api == null");
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
 
-        return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
-            .addModifiers(Modifier.FINAL)
+        MethodSpec.Builder methodSpecBuilder = MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
+            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addJavadoc("Handles GET request\n")
-            .addParameter(RoutingContext.class, "context", Modifier.FINAL)
-            .addStatement("$T request = context.request()", HttpServerRequest.class)
-            .addModifiers(Modifier.PUBLIC)
-            .beginControlFlow("try")
-            .addCode(getRequestCodeBlock(api, namespace))
-            .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
-            .nextControlFlow("catch (Exception ex) ")
-            .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
-            .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
-            .endControlFlow()
-            .build();
+            .addParameter(RoutingContext.class, "context", Modifier.FINAL);
+
+        if (api.request == null) {
+            methodSpecBuilder.beginControlFlow("try")
+                    .addStatement("process(context)")
+                    .nextControlFlow("catch (Exception ex) ")
+                    .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
+                    .addStatement("$T.processResponse(context.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                    .endControlFlow();
+        } else {
+            methodSpecBuilder.addStatement("$T request = context.request()", HttpServerRequest.class)
+                .beginControlFlow("try")
+                .addCode(getRequestCodeBlock(api, namespace))
+                .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+                .nextControlFlow("catch (Exception ex) ")
+                .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
+                .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                .endControlFlow();
+        }
+        return methodSpecBuilder.build();
     }
 
     /**
@@ -177,20 +200,29 @@ public class MethodGenerator {
         Preconditions.checkArgument(api != null, "api == null");
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
 
-        return MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
-            .addModifiers(Modifier.FINAL)
+        MethodSpec.Builder methodSpecBuilder =  MethodSpec.methodBuilder(RestGeneratorHelper.getHandlerName(api.httpMethod))
+            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addJavadoc("Handles DELETE request\n")
-            .addParameter(RoutingContext.class, "context", Modifier.FINAL)
-            .addStatement("$T request = context.request()", HttpServerRequest.class)
-            .addModifiers(Modifier.PUBLIC)
-            .beginControlFlow("try")
-            .addCode(getRequestCodeBlock(api, namespace))
-            .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
-            .nextControlFlow("catch (Exception ex) ")
-            .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
-            .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
-            .endControlFlow()
-            .build();
+            .addParameter(RoutingContext.class, "context", Modifier.FINAL);
+
+        if (api.request == null) {
+            methodSpecBuilder.beginControlFlow("try")
+                    .addStatement("process(context)")
+                    .nextControlFlow("catch (Exception ex) ")
+                    .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
+                    .addStatement("$T.processResponse(context.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                    .endControlFlow();
+        } else {
+            methodSpecBuilder.addStatement("$T request = context.request()", HttpServerRequest.class)
+                    .beginControlFlow("try")
+                    .addCode(getRequestCodeBlock(api, namespace))
+                    .addStatement("validate(context, $L)", RestGeneratorHelper.getRequestVariableName(api.name))
+                    .nextControlFlow("catch (Exception ex) ")
+                    .addStatement("logger.debug(\"Bad request, ex:\" + ex)")
+                    .addStatement("$T.processResponse(request.response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
+                    .endControlFlow();
+        }
+        return methodSpecBuilder.build();
     }
 
     /**
@@ -267,8 +299,7 @@ public class MethodGenerator {
                 .addParameter(RoutingContext.class, "context", Modifier.FINAL)
                 .addParameter(ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)),
                         RestGeneratorHelper.getRequestVariableName(api.name), Modifier.FINAL)
-                .addModifiers(Modifier.PRIVATE)
-                .addModifiers(Modifier.FINAL)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .beginControlFlow("if ($L == null)", RestGeneratorHelper.getRequestVariableName(api.name))
                 .addStatement("$T.processResponse(context.request().response(), $T.BAD_REQUEST.code())", HttpHelper.class, HttpResponseStatus.class)
                 .addStatement("return")
@@ -300,13 +331,18 @@ public class MethodGenerator {
         Preconditions.checkArgument(api != null, "api == null");
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
 
-        return MethodSpec.methodBuilder("process")
+        MethodSpec.Builder methodSpecBuilder = MethodSpec.methodBuilder("process")
                 .addJavadoc("Processes the request\n")
-                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
-                .addParameter(ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace), RestGeneratorHelper.getRequestObjectName(api.name)),
-                        RestGeneratorHelper.getRequestVariableName(api.name), Modifier.FINAL)
-                .addModifiers(Modifier.ABSTRACT)
-                .addModifiers(Modifier.PUBLIC).build();
+                .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL);
+
+        if (api.request != null) {
+            methodSpecBuilder.addParameter(ClassName.get(RestGeneratorHelper.getTypesNamespace(namespace),
+                            RestGeneratorHelper.getRequestObjectName(api.name)),
+                    RestGeneratorHelper.getRequestVariableName(api.name), Modifier.FINAL);
+        }
+
+        return methodSpecBuilder.build();
     }
 
     /**
@@ -411,6 +447,56 @@ public class MethodGenerator {
     }
 
     /**
+     * Generates {@link MethodSpec} for query string for Request types
+     *
+     * <p>
+     * Generated code looks like
+     * </p>
+     *
+     * <pre>
+     * public String getQueryString() {
+     *     String queryString;
+     *
+     *     List<String> parts = new ArrayList<>();
+     *     parts.add("name=" + name);
+     *     queryString = Joiner.on("&").join(parts);
+     *
+     *     if (queryString.isEmpty()) {
+     *         return queryString;
+     *     } else {
+     *         return "?" + queryString;
+     *     }
+     * }
+     * </pre>
+     *
+     * @param - fields of the type
+     * @return - {@link MethodSpec}
+     */
+    MethodSpec getGetQueryString(List<Field> fields) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("getQueryString")
+                .returns(String.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addJavadoc("Returns query string representation of the request");
+
+        builder.addStatement("String queryString").addCode("\n");
+        builder.addStatement("$T<String> parts = new $T<>()", List.class, ArrayList.class);
+
+        for (Field field : fields) {
+            builder.addStatement("parts.add($S$L$L)", field.name + "=", " + ", RestGeneratorHelper.getFieldName(field.name));
+        }
+
+        builder.addStatement("queryString = $T.on(\"&\").join(parts)", Joiner.class).addCode("\n");
+
+        builder.beginControlFlow("if (queryString.isEmpty())")
+            .addStatement("return queryString")
+            .nextControlFlow("else")
+            .addStatement(" return \"?\" + queryString")
+            .endControlFlow();
+
+        return builder.build();
+    }
+
+    /**
      * Generates {@link MethodSpec} for set method
      *
      * <p>
@@ -502,7 +588,7 @@ public class MethodGenerator {
             objectsEqualsList.add("Objects.equals(" + fieldName + ", other." + fieldName + ")");
         }
 
-        String objectEqualsString = Joiner.on(" &&\n").join(objectsEqualsList);
+        String objectEqualsString = objectsEqualsList.isEmpty() ? "true" : Joiner.on(" &&\n").join(objectsEqualsList);
 
         return equalsBuilder.beginControlFlow( "if (obj == this) ")
                 .addStatement("return true")
@@ -544,6 +630,7 @@ public class MethodGenerator {
 
     /**
      * Returns MethodSpec for empty constructor
+     * @return - {@link MethodSpec}
      */
     MethodSpec getEmptyConstructorSpec() {
         return MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).build();

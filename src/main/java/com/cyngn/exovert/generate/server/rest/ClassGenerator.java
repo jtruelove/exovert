@@ -10,7 +10,6 @@ import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.vertx.web.RestApi;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
@@ -40,7 +39,6 @@ public class ClassGenerator {
         this.context = context;
         this.methodGenerator = methodGenerator;
     }
-
     /**
      * Generates {@link TypeSpec} for API class
      *
@@ -98,7 +96,10 @@ public class ClassGenerator {
             apiBuilder.addMethod(methodGenerator.getHandleDeleteMethodSpec(api, namespace));
         }
 
-        apiBuilder.addMethod(methodGenerator.getValidateMethodSpec(api, namespace));
+        // add validate method only if api contains request
+        if (api.request != null) {
+            apiBuilder.addMethod(methodGenerator.getValidateMethodSpec(api, namespace));
+        }
         apiBuilder.addMethod(methodGenerator.getProcessMethodSpec(api, namespace));
         apiBuilder.addMethod(methodGenerator.getSupportedApi());
         apiBuilder.addMethod(methodGenerator.getGetHttpMethod(api.httpMethod));
@@ -145,6 +146,7 @@ public class ClassGenerator {
     TypeSpec.Builder getTypeSpecBuilder(String namespace, String name, List<Field> fields,
                                                boolean immutable, boolean jsonAnnotations) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "namespace cannot be empty or null");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(name), "api name cannot be empty or null");
 
         //register type object with type map for future reference
         context.typeMap.registerType(name, ClassName.get(namespace, name));
@@ -165,6 +167,7 @@ public class ClassGenerator {
                         .addParameter(context.typeMap.getTypeName(RestGeneratorHelper.getBuilderTypeName(name)), RestGeneratorHelper.getBuilderVariableName());
 
         List<String> fieldNames = new ArrayList<>();
+
 
         for (Field field : fields) {
             String fieldName = RestGeneratorHelper.getFieldName(field.name);
@@ -243,18 +246,20 @@ public class ClassGenerator {
 
             // field assignment in constructor
             constructorSpec.addParameter(fieldTypeName, fieldName)
-                    .addStatement("this.$N = $N", fieldName, fieldName);
+                    .addStatement("this.$1N = $1N", fieldName);
 
             // field assignment from builder object
             constructorWithBuildObjectSpec
-                    .addStatement("this.$N = builder.$N", fieldName, fieldName);
+                    .addStatement("this.$1N = builder.$1N", fieldName);
         }
 
         // add empty constructor for Json serialization
         builder.addMethod(methodGenerator.getEmptyConstructorSpec());
 
-        // add constructor with all parameters
-        builder.addMethod(constructorSpec.build());
+        if (!fields.isEmpty()) {
+            // add constructor with all parameters
+            builder.addMethod(constructorSpec.build());
+        }
 
         // add constructor with all builder
         builder.addMethod(constructorWithBuildObjectSpec.build());
@@ -301,8 +306,7 @@ public class ClassGenerator {
         Preconditions.checkArgument(StringUtils.isNotEmpty(name), "name cannot be empty or null");
 
         TypeSpec.Builder builder = TypeSpec.classBuilder(Constants.BUILDER_CLASS_NAME)
-                .addModifiers(Modifier.PUBLIC)
-                .addModifiers(Modifier.STATIC);
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 
         for (Field field : fields) {
             TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(
@@ -318,7 +322,7 @@ public class ClassGenerator {
                     .addParameter(fieldTypeName, fieldName)
                     .addModifiers(Modifier.PUBLIC)
                     .returns(context.typeMap.getTypeName(RestGeneratorHelper.getBuilderTypeName(name)))
-                    .addStatement("this.$N = $N", fieldName, fieldName)
+                    .addStatement("this.$1N = $1N", fieldName)
                     .addStatement("return this");
 
             builder.addMethod(methodSpecBuilder.build());
@@ -370,18 +374,28 @@ public class ClassGenerator {
      * }
      * </pre>
      *
-     * @param name   - type name
-     * @param fields - fields of the type
+     * @param api - Api object
      * @return - {@link TypeSpec}
      */
-    TypeSpec getRequestTypeSpec(String namespace, String name, List<Field> fields) {
+    TypeSpec getRequestTypeSpec(String namespace, Api api) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
+        Preconditions.checkArgument(api != null, "api == null");
+        Preconditions.checkArgument(api.request.fields.size() > 0, "fields should have atleast one field");
+
+        String name = RestGeneratorHelper.getRequestObjectName(api.name);
         Preconditions.checkArgument(StringUtils.isNotEmpty(name), "type name cannot be empty or null");
 
-        return getTypeSpecBuilder(namespace, name, fields)
-                .addMethod(methodGenerator.getValidateMethodSpec(fields))
-                .addJavadoc(GeneratorHelper.getJavaDocHeader("Request type for " + name + " Api"))
-                .build();
+        TypeSpec.Builder typeSpecBuilder = getTypeSpecBuilder(namespace, name, api.request.fields)
+                .addMethod(methodGenerator.getValidateMethodSpec(api.request.fields))
+                .addJavadoc(GeneratorHelper.getJavaDocHeader("Request type for " + name + " Api"));
+
+        String httpMethod = RestGeneratorHelper.getHttpMethod(api.httpMethod);
+        if (httpMethod.equals(Constants.HTTP_METHOD_GET)
+                || httpMethod.equals(Constants.HTTP_METHOD_DELETE) ) {
+            typeSpecBuilder.addMethod(methodGenerator.getGetQueryString(api.request.fields));
+        }
+
+        return typeSpecBuilder.build();
     }
 
     /**
@@ -409,6 +423,7 @@ public class ClassGenerator {
     TypeSpec getResponseTypeSpec(String namespace, String name, List<Field> fields) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
         Preconditions.checkArgument(StringUtils.isNotEmpty(name), "type name cannot be empty or null");
+        Preconditions.checkArgument(fields.size() > 0, "fields should have atleast one field");
 
         return getTypeSpecBuilder(namespace, name, fields)
                 .addJavadoc(GeneratorHelper.getJavaDocHeader("Response type for " + name + " Api"))
@@ -431,7 +446,7 @@ public class ClassGenerator {
                 .initializer("$S", api.path).build());
 
         CodeBlock block = CodeBlock.builder().beginControlFlow("")
-                .add("new RestApi.RestApiDescriptor($T.$L, $L, this::$L),\n", HttpMethod.class,
+                .add("new RestApi.RestApiDescriptor($T.$L, $L, this::$L)\n", HttpMethod.class,
                         api.httpMethod.toUpperCase(), apiConstant, RestGeneratorHelper.getHandlerName(api.httpMethod))
                 .unindent().add("}")
                 .build();
@@ -495,13 +510,16 @@ public class ClassGenerator {
         enumTypespecBuilder.addField(String.class, "value", Modifier.PRIVATE, Modifier.FINAL);
 
         for (EnumValue enumValue : enumType.values) {
+            if (enumValue == null) {
+                throw new IllegalArgumentException("Enum value is required");
+            }
             enumTypespecBuilder.addEnumConstant(
                     enumValue.name.toUpperCase(), TypeSpec.anonymousClassBuilder("$S", enumValue.value).build());
         }
 
         enumTypespecBuilder.addMethod(MethodSpec.constructorBuilder()
                 .addParameter(String.class, "value")
-                .addStatement("this.$N = $N", "value", "value").build());
+                .addStatement("this.$1N = $1N", "value").build());
 
         enumTypespecBuilder.addMethod(MethodSpec.methodBuilder("toString")
                 .addModifiers(Modifier.PUBLIC)
@@ -514,7 +532,7 @@ public class ClassGenerator {
                 .addException(IllegalArgumentException.class)
                 .returns(ClassName.get(namespace, enumTypeName))
                 .addParameter(String.class, "value", Modifier.FINAL)
-                .beginControlFlow("for ($L enumValue : $L.values())", enumTypeName, enumTypeName)
+                .beginControlFlow("for ($1L enumValue : $1L.values())", enumTypeName)
                 .beginControlFlow("if (enumValue.value.equals(value))")
                 .addStatement("return enumValue")
                 .endControlFlow()

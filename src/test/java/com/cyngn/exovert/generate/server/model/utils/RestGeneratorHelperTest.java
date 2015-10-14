@@ -116,7 +116,8 @@ public class RestGeneratorHelperTest {
         InterfaceSpec spec = RestGeneratorHelper.loadSpecFromFile("src/test/java/com/cyngn/exovert/generate/server/model/utils/api.json");
 
         assertEquals(1, spec.apis.size());
-        assertEquals(1, spec.dataTypes.enumTypes.size());
-        assertEquals(1, spec.dataTypes.classTypes.size());
+
+        assertEquals(1, spec.dataTypeGroups.get(0).enumTypes.size());
+        assertEquals(1, spec.dataTypeGroups.get(0).classTypes.size());
     }
 }
