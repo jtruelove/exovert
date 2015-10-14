@@ -362,7 +362,7 @@ public class ClassGenerator {
      *
      *     /** Validates request object
      *      *
-     *      * @return {@link ValidationResult}
+     *      * @return {@link com.cyngn.vertx.validation.ValidationResult}
      *      *\/
      *
      *     public ValidationResult validate() {
@@ -442,7 +442,7 @@ public class ClassGenerator {
 
         String apiConstant = api.name.toUpperCase() + Constants.API_PATH;
 
-        builder.addField(FieldSpec.builder(String.class, apiConstant, Modifier.PROTECTED, Modifier.STATIC, Modifier.FINAL)
+        builder.addField(FieldSpec.builder(String.class, apiConstant, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                 .initializer("$S", api.path).build());
 
         CodeBlock block = CodeBlock.builder().beginControlFlow("")
