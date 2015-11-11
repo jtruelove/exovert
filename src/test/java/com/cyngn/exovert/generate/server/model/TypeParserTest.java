@@ -1,6 +1,5 @@
 package com.cyngn.exovert.generate.server.model;
 
-
 import com.cyngn.exovert.generate.server.rest.TypeMap;
 import com.cyngn.exovert.generate.server.rest.TypeParser;
 import com.squareup.javapoet.ClassName;
@@ -78,6 +77,7 @@ public class TypeParserTest {
     public void testGetMapKeyType() {
         assertEquals("String", TypeParser.getMapKeyType("Map<String,String>"));
         assertEquals("K", TypeParser.getMapKeyType("Map<K,V>"));
+        assertEquals("Map<String,String>", TypeParser.getMapKeyType("Map<Map<String,String>,String>"));
 
         exception.expect(IllegalArgumentException.class);
         TypeParser.getMapKeyType("Map<>");
@@ -122,6 +122,15 @@ public class TypeParserTest {
         typeName = TypeParser.parse("List<T>", typeMap);
         assertEquals("java.util.List<T>", typeName.toString());
 
+        typeName = TypeParser.parse("List<List<T>>", typeMap);
+        assertEquals("java.util.List<java.util.List<T>>", typeName.toString());
+
+        typeName = TypeParser.parse("Set<T>", typeMap);
+        assertEquals("java.util.Set<T>", typeName.toString());
+
+        typeName = TypeParser.parse("Set<Set<T>>", typeMap);
+        assertEquals("java.util.Set<java.util.Set<T>>", typeName.toString());
+
         typeName = TypeParser.parse("Map<String, String>", typeMap);
 
         assertEquals("java.util.Map<java.lang.String, java.lang.String>", typeName.toString());
@@ -132,6 +141,12 @@ public class TypeParserTest {
         typeName = TypeParser.parse("Map<K, V>", typeMap);
 
         assertEquals("java.util.Map<K, V>", typeName.toString());
-    }
 
+        typeName = TypeParser.parse("Map<Map<K,V>, V>", typeMap);
+        assertEquals("java.util.Map<java.util.Map<K, V>, V>", typeName.toString());
+
+        typeName = TypeParser.parse("Map<Map<Map<K,V>,V>, V>", typeMap);
+        assertEquals("java.util.Map<java.util.Map<java.util.Map<K, V>, V>, V>", typeName.toString());
+
+    }
 }

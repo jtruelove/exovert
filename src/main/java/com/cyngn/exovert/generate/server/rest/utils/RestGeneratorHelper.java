@@ -96,14 +96,14 @@ public class RestGeneratorHelper {
         return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, typeName.toLowerCase());
     }
 
-    public static String getTypeName(String name, TypeMap typeMap) {
+    public static String getTypeName(String name) {
         if (TypeParser.isList(name)) {
-            return String.format("List<%s>", getUpperCamelCaseFromSnakeCase(TypeParser.getListType(name)));
+            return String.format("List<%s>", getTypeName(TypeParser.getListType(name)));
         } else if (TypeParser.isSet(name)) {
-            return String.format("Set<%s>", getUpperCamelCaseFromSnakeCase(TypeParser.getSetType(name)));
+            return String.format("Set<%s>", getTypeName(TypeParser.getSetType(name)));
         } else if (TypeParser.isMap(name)){
-            return String.format("Map<%s,%s>", getUpperCamelCaseFromSnakeCase(TypeParser.getMapKeyType(name)),
-                    getUpperCamelCaseFromSnakeCase(TypeParser.getMapValueType(name)));
+            return String.format("Map<%s,%s>", getTypeName(TypeParser.getMapKeyType(name)),
+                    getTypeName(TypeParser.getMapValueType(name)));
         } else {
             return getUpperCamelCaseFromSnakeCase(name);
         }

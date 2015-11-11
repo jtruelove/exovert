@@ -199,6 +199,50 @@
               "type": "list<string>"
             }
           ]
+        },
+        {
+          "name" : "type_has_map_of_map",
+          "documentation" : "Example to show Type with map of map field",
+          "immutable" : false,
+          "fields": [
+            {
+              "name": "names",
+              "type": "map<map<string,string>,string>"
+            }
+          ]
+        },
+        {
+          "name" : "type_has_map_of_list",
+          "documentation": "Example to show Type with map containing list as value",
+          "immutable" : false,
+          "fields": [
+            {
+              "name": "names",
+              "type": "map<string, list<string>>"
+            }
+          ]
+        },
+        {
+          "name" : "type_has_list_of_map",
+          "documentation": "Example to show Type with list containing map",
+          "immutable" : false,
+          "fields": [
+            {
+              "name": "names",
+              "type": "list<map<string,string>>"
+            }
+          ]
+        },
+        {
+          "name" : "type_has_list_of_list",
+          "documentation": "Example to show Type with list containing list",
+          "immutable" : false,
+          "fields": [
+            {
+              "name": "names",
+              "type": "list<list<string>>"
+            }
+          ]
         }
       ]
     }

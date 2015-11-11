@@ -171,8 +171,8 @@ public class ClassGenerator {
 
         for (Field field : fields) {
             String fieldName = RestGeneratorHelper.getFieldName(field.name);
-            String fieldType = RestGeneratorHelper.getTypeName(field.type, context.typeMap);
-            TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(field.type, context.typeMap),
+            String fieldType = RestGeneratorHelper.getTypeName(field.type);
+            TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(field.type),
                     context.typeMap);
 
             // field spec
@@ -310,7 +310,7 @@ public class ClassGenerator {
 
         for (Field field : fields) {
             TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(
-                    field.type, context.typeMap), context.typeMap);
+                    field.type), context.typeMap);
 
             String fieldName = RestGeneratorHelper.getFieldName(field.name);
 
@@ -497,7 +497,7 @@ public class ClassGenerator {
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
         Preconditions.checkArgument(enumType != null, "enumType == null");
 
-        String enumTypeName = RestGeneratorHelper.getTypeName(enumType.name, context.typeMap);
+        String enumTypeName = RestGeneratorHelper.getTypeName(enumType.name);
 
         context.typeMap.registerType(enumTypeName,
                 ClassName.get(namespace, enumTypeName), true);

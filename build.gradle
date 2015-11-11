@@ -10,7 +10,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'application'
 apply plugin: 'maven'
 
-version = '0.1.0'
+version = '0.1.1'
 group = "com.cyngn.vertx"
 archivesBaseName = "exovert"
 mainClassName = "com.cyngn.exovert.CrudCreator"
@@ -142,4 +142,5 @@ task generateCrudCreatorWrapper {
         ant.chmod(file: wrapperScript.path, perm: "+x")
     }
 }
+
 
