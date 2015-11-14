@@ -25,6 +25,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
+import org.apache.cassandra.db.marshal.SimpleDateType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.lang.model.element.Modifier;
@@ -318,9 +319,14 @@ public class RestGenerator {
                 throw new IllegalArgumentException("We don't currently support UDT primary keys in the query string, field: "
                         + column.getName());
             } else {
+                String type;
+                if (SimpleDateType.class.getTypeName().equals(column.getType().getCustomTypeClassName())) { type = "Date"; }
+                else { type = column.getType().asJavaClass().getSimpleName(); }
+
                 builder.addCode("values[$L] = ", i)
-                        .addCode(typeToConverters.getTypeConverter(column.getType().asJavaClass().getSimpleName(),
-                                CodeBlock.builder().add("request.getParam($S)", column.getName()).build()));
+                       .addCode(typeToConverters.getTypeConverter(type,
+                                CodeBlock.builder().add("request.getParam($S)", column.getName()).build()))
+                       .addStatement("");
             }
         }
 

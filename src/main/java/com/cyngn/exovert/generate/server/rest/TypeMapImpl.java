@@ -139,7 +139,7 @@ class TypeMapImpl implements TypeMap {
         Preconditions.checkArgument(cb != null, "cb == null");
 
         if (!typeConverterMapping.containsKey(type)) {
-            throw new IllegalArgumentException("No converter found for type: " + type);
+            throw new IllegalArgumentException("No converter found for type: " + type + " for code block: " + cb);
         }
         return typeConverterMapping.get(type).apply(cb);
     }
