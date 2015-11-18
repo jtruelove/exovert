@@ -3,7 +3,7 @@
   "apis" : [
     {
       "name": "get",
-      "documentation": "API to retrieve beer",
+      "description": "API to retrieve beer",
       "path": "/get",
       "http_method": "GET",
       "request": {
@@ -53,7 +53,7 @@
       "enum_types": [
         {
           "name" : "beer_type",
-          "documentation": "Enumerated type for different types of beer",
+          "description": "Enumerated type for different types of beer",
           "values":[
             {
               "name" : "ALCOHOLIC",
@@ -69,7 +69,7 @@
       "class_types": [
         {
           "name" : "type_has_string",
-          "documentation": "Example to show Type with String",
+          "description": "Example to show Type with String",
           "immutable" : false,
           "fields": [
             {

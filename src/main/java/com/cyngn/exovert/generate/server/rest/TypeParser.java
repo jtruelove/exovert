@@ -54,7 +54,7 @@ public class TypeParser {
         ClassName list = (ClassName) typeMap.getTypeName("List");
 
         TypeName elementTypeName;
-        String elementType = RestGeneratorHelper.getTypeNameString(getListType(type));
+        String elementType = getListType(type);
 
         if (isCollection(elementType)) {
             elementTypeName = parse(elementType, typeMap);

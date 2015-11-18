@@ -6,7 +6,7 @@
         "enum_types": [
           {
             "name": "beer_type",
-            "documentation": "Enumerated type for different types of beer",
+            "description": "Enumerated type for different types of beer",
             "values": [
               {
                 "name": "ALCOHOLIC",
@@ -22,7 +22,7 @@
         "class_types": [
           {
             "name": "type_has_string",
-            "documentation": "Example to show Type with String",
+            "description": "Example to show Type with String",
             "immutable": false,
             "fields": [
               {
@@ -41,7 +41,7 @@
         "enum_types": [
           {
             "name": "beer_type",
-            "documentation": "Enumerated type for different types of beer",
+            "description": "Enumerated type for different types of beer",
             "values": [
               {
                 "name": "ALCOHOLIC",
@@ -57,7 +57,7 @@
         "class_types": [
           {
             "name" : "type_has_immutable_string",
-            "documentation": "Example to show Immutable type with string",
+            "description": "Example to show Immutable type with string",
             "immutable" : true,
             "fields": [
               {
@@ -68,7 +68,7 @@
           },
           {
             "name" : "type_has_string_with_json_annotations",
-            "documentation": "Example to show Type annotated with Json annotations",
+            "description": "Example to show Type annotated with Json annotations",
             "immutable" : false,
             "json_annotations" : true,
             "fields": [
@@ -80,7 +80,7 @@
           },
           {
             "name" : "type_has_map",
-            "documentation": "Example to show Type with map field",
+            "description": "Example to show Type with map field",
             "immutable" : false,
             "fields": [
               {
@@ -91,7 +91,7 @@
           },
           {
             "name" : "type_has_list",
-            "documentation" : "Example to show Type with list field",
+            "description" : "Example to show Type with list field",
             "immutable" : false,
             "fields": [
               {

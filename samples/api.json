@@ -4,13 +4,14 @@
   "apis" : [
     {
       "name": "create",
-      "documentation": "API to create beer",
+      "description": "API to create beer",
       "path": "/create",
       "http_method": "POST",
       "request": {
         "fields": [
           {
             "name": "name",
+            "description" : "name of the beer",
             "type": "string",
             "required": true,
             "validation": {
@@ -47,7 +48,7 @@
     },
     {
       "name": "get",
-      "documentation": "API to retrieve beer",
+      "description": "API to retrieve beer",
       "path": "/get",
       "http_method": "GET",
       "request": {
@@ -92,7 +93,7 @@
     },
     {
       "name": "delete",
-      "documentation": "API to remove beer",
+      "description": "API to remove beer",
       "path": "/delete",
       "http_method": "DELETE",
       "request": {
@@ -113,7 +114,7 @@
     },
     {
       "name": "ping",
-      "documentation": "API to ping the server",
+      "description": "API to ping the server",
       "path": "/ping",
       "http_method": "POST"
     }
@@ -124,7 +125,7 @@
       "enum_types": [
         {
           "name": "beer_type",
-          "documentation": "Enumerated type for different types of beer",
+          "description": "Enumerated type for different types of beer",
           "values": [
             {
               "name": "ALCOHOLIC",
@@ -140,7 +141,7 @@
       "class_types": [
         {
           "name": "type_has_string",
-          "documentation": "Example to show Type with String",
+          "description": "Example to show Type with String",
           "immutable": false,
           "fields": [
             {
@@ -157,7 +158,7 @@
       "class_types": [
         {
           "name" : "type_has_immutable_string",
-          "documentation": "Example to show Immutable type with string",
+          "description": "Example to show Immutable type with string",
           "immutable" : true,
           "fields": [
             {
@@ -168,7 +169,7 @@
         },
         {
           "name" : "type_has_string_with_json_annotations",
-          "documentation": "Example to show Type annotated with Json annotations",
+          "description": "Example to show Type annotated with Json annotations",
           "immutable" : false,
           "json_annotations" : true,
           "fields": [
@@ -180,7 +181,7 @@
         },
         {
           "name" : "type_has_map",
-          "documentation": "Example to show Type with map field",
+          "description": "Example to show Type with map field",
           "immutable" : false,
           "fields": [
             {
@@ -191,7 +192,7 @@
         },
         {
           "name" : "type_has_list",
-          "documentation" : "Example to show Type with list field",
+          "description" : "Example to show Type with list field",
           "immutable" : false,
           "fields": [
             {
@@ -201,8 +202,8 @@
           ]
         },
         {
-          "name" : "type_has_map_of_map",
-          "documentation" : "Example to show Type with map of map field",
+          "name" : "type_has_map_of_map_and_string",
+          "description" : "Example to show Type with map of map field",
           "immutable" : false,
           "fields": [
             {
@@ -213,7 +214,7 @@
         },
         {
           "name" : "type_has_map_of_list",
-          "documentation": "Example to show Type with map containing list as value",
+          "description": "Example to show Type with map containing list as value",
           "immutable" : false,
           "fields": [
             {
@@ -224,7 +225,7 @@
         },
         {
           "name" : "type_has_list_of_map",
-          "documentation": "Example to show Type with list containing map",
+          "description": "Example to show Type with list containing map",
           "immutable" : false,
           "fields": [
             {
@@ -235,7 +236,7 @@
         },
         {
           "name" : "type_has_list_of_list",
-          "documentation": "Example to show Type with list containing list",
+          "description": "Example to show Type with list containing list",
           "immutable" : false,
           "fields": [
             {

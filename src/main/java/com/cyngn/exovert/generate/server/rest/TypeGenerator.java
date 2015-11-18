@@ -64,7 +64,7 @@ public class TypeGenerator {
                                     RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace),
                                     RestGeneratorHelper.getTypeName(classType.name),
                                     classType.fields, classType.immutable, classType.jsonAnnotations)
-                                    .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.documentation)).build();
+                                    .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.description)).build();
 
                     generateClassFromTypespec(RestGeneratorHelper.getTypesNamespace(dataTypeGroup.namespace), typeSpec);
                 }

@@ -39,5 +39,5 @@ public class ClassType {
      * Class Type documentation
      */
     @JsonProperty
-    public String documentation;
+    public String description;
 }

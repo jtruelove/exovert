@@ -82,7 +82,7 @@ public class ClassGenerator {
         TypeSpec.Builder apiBuilder = TypeSpec.classBuilder(RestGeneratorHelper.getApiName(api.name))
                 .addModifiers(Modifier.PUBLIC).addModifiers(Modifier.ABSTRACT);
 
-        apiBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader(api.documentation));
+        apiBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader(api.description));
         apiBuilder.addField(GeneratorHelper.getLogger(RestGeneratorHelper.getApiNamespace(namespace), RestGeneratorHelper.getApiName(api.name)));
         apiBuilder.addSuperinterface(RestApi.class);
 
@@ -178,6 +178,10 @@ public class ClassGenerator {
             // field spec
             FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(fieldTypeName, fieldName)
                         .addModifiers(Modifier.PRIVATE);
+
+            if (StringUtils.isNotEmpty(field.description)) {
+                fieldSpecBuilder.addJavadoc(field.description  + "\n");
+            }
 
             // check if both required and default is not set at same time
             if (field.required && field.defaultValue != null) {
@@ -505,7 +509,7 @@ public class ClassGenerator {
         TypeSpec.Builder enumTypespecBuilder = TypeSpec
                 .enumBuilder(enumTypeName)
                 .addModifiers(Modifier.PUBLIC)
-                .addJavadoc(GeneratorHelper.getJavaDocHeader(enumType.documentation));
+                .addJavadoc(GeneratorHelper.getJavaDocHeader(enumType.description));
 
         enumTypespecBuilder.addField(String.class, "value", Modifier.PRIVATE, Modifier.FINAL);
 

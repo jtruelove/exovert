@@ -397,7 +397,7 @@ build/bin/RestGenerator --server --spec api.json --out build/generated-src
   "apis" : [
     {
       "name": "get",
-      "documentation": "API to retrieve beer",
+      "description": "API to retrieve beer",
       "path": "/get",
       "http_method": "GET",
       "request": {
@@ -452,7 +452,7 @@ build/bin/RestGenerator --server --spec api.json --out build/generated-src
       "enum_types": [
         {
           "name": "beer_type",
-          "documentation": "Enumerated type for different types of beer",
+          "description": "Enumerated type for different types of beer",
           "values": [
             {
               "name": "ALCOHOLIC",
@@ -893,7 +893,7 @@ build/bin/RestGenerator --server --spec api.json --out build/generated-src
   "apis" : [
     {
       "name": "delete",
-      "documentation": "API to remove beer",
+      "description": "API to remove beer",
       "path": "/delete",
       "http_method": "DELETE",
       "request": {
@@ -1106,7 +1106,7 @@ build/bin/RestGenerator --client --spec api.json --out build/generated-src
   "apis" : [
     {
       "name": "create",
-      "documentation": "API to create beer",
+      "description": "API to create beer",
       "path": "/create",
       "http_method": "POST",
       "request": {
@@ -1147,7 +1147,7 @@ build/bin/RestGenerator --client --spec api.json --out build/generated-src
     },
     {
       "name": "get",
-      "documentation": "API to retrieve beer",
+      "description": "API to retrieve beer",
       "path": "/get",
       "http_method": "GET",
       "request": {
@@ -1192,7 +1192,7 @@ build/bin/RestGenerator --client --spec api.json --out build/generated-src
     },
     {
       "name": "delete",
-      "documentation": "API to remove beer",
+      "description": "API to remove beer",
       "path": "/delete",
       "http_method": "DELETE",
       "request": {
@@ -1218,7 +1218,7 @@ build/bin/RestGenerator --client --spec api.json --out build/generated-src
       "enum_types": [
         {
           "name": "beer_type",
-          "documentation": "Enumerated type for different types of beer",
+          "description": "Enumerated type for different types of beer",
           "values": [
             {
               "name": "ALCOHOLIC",
@@ -1897,7 +1897,7 @@ build/bin/RestGenerator --types --spec api.json --out build/generated-src
       "enum_types": [
         {
           "name": "beer_type",
-          "documentation": "Enumerated type for different types of beer",
+          "description": "Enumerated type for different types of beer",
           "values": [
             {
               "name": "ALCOHOLIC",
@@ -1913,7 +1913,7 @@ build/bin/RestGenerator --types --spec api.json --out build/generated-src
       "class_types": [
         {
           "name": "type_has_string",
-          "documentation": "Example to show Type with String",
+          "description": "Example to show Type with String",
           "immutable": false,
           "fields": [
             {
@@ -1929,7 +1929,7 @@ build/bin/RestGenerator --types --spec api.json --out build/generated-src
       "enum_types": [
         {
           "name": "beer_type",
-          "documentation": "Enumerated type for different types of beer",
+          "description": "Enumerated type for different types of beer",
           "values": [
             {
               "name": "ALCOHOLIC",
@@ -1945,7 +1945,7 @@ build/bin/RestGenerator --types --spec api.json --out build/generated-src
       "class_types": [
         {
           "name" : "type_has_immutable_string",
-          "documentation": "Example to show Immutable type with string",
+          "description": "Example to show Immutable type with string",
           "immutable" : true,
           "fields": [
             {
@@ -1956,7 +1956,7 @@ build/bin/RestGenerator --types --spec api.json --out build/generated-src
         },
         {
           "name" : "type_has_string_with_json_annotations",
-          "documentation": "Example to show Type annotated with Json annotations",
+          "description": "Example to show Type annotated with Json annotations",
           "immutable" : false,
           "json_annotations" : true,
           "fields": [
@@ -1968,7 +1968,7 @@ build/bin/RestGenerator --types --spec api.json --out build/generated-src
         },
         {
           "name" : "type_has_map",
-          "documentation": "Example to show Type with map field",
+          "description": "Example to show Type with map field",
           "immutable" : false,
           "fields": [
             {
@@ -1979,7 +1979,7 @@ build/bin/RestGenerator --types --spec api.json --out build/generated-src
         },
         {
           "name" : "type_has_list",
-          "documentation" : "Example to show Type with list field",
+          "description" : "Example to show Type with list field",
           "immutable" : false,
           "fields": [
             {

@@ -46,4 +46,5 @@ public class Constants {
     public static final String CLIENT_SUFFIX = "Client";
     public static final String SERVICE_CLIENT_FIELD_NAME = "serviceClient";
     public static final String CALL_PREFIX = "call";
+    public static final String API_NAME_CONSTANT_SUFFIX = "_API";
 }

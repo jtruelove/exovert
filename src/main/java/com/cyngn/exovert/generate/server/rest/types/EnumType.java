@@ -26,8 +26,8 @@ public class EnumType {
     public Set<EnumValue> values;
 
     /**
-     * Enum type documentation
+     * Enum type description
      */
     @JsonProperty
-    public String documentation;
+    public String description;
 }

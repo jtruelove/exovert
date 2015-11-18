@@ -3,7 +3,6 @@ package com.cyngn.exovert.generate.server.rest.utils;
 import com.cyngn.exovert.generate.server.rest.DataTypeSpec;
 import com.cyngn.exovert.generate.server.rest.InterfaceSpec;
 import com.cyngn.exovert.generate.server.rest.RestServerGenerator;
-import com.cyngn.exovert.generate.server.rest.TypeMap;
 import com.cyngn.exovert.generate.server.rest.TypeParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
@@ -64,6 +63,10 @@ public class RestGeneratorHelper {
     public static String getApiName(String api) {
         return Constants.API_NAME_PREFIX + getUpperCamelCaseFromSnakeCase(api)
                 + Constants.API_NAME_SUFFIX;
+    }
+
+    public static String getApiConstantName(String api) {
+        return api.toUpperCase().concat(Constants.API_NAME_CONSTANT_SUFFIX);
     }
 
     public static String getRequestObjectName(String apiName) {
