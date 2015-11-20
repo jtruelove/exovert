@@ -47,7 +47,7 @@
       }
     },
     {
-      "name": "get",
+      "name": "get_beer",
       "description": "API to retrieve beer",
       "path": "/get",
       "http_method": "GET",
