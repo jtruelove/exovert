@@ -81,7 +81,7 @@ class TypeMapImpl implements TypeMap {
 
         // for Date
         typeConverterMapping.put("Date", cb ->
-                CodeBlock.builder().add("new $T(", typeToClassMapping.get("Date")).add(cb).add(")").build());
+                CodeBlock.builder().add("new $T(", typeToClassMapping.get("Date")).add(cb).add(").toDate()").build());
 
         // for String
         typeConverterMapping.put("String", cb ->

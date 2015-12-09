@@ -5,6 +5,7 @@ import com.cyngn.exovert.generate.entity.UDTGenerator;
 import com.cyngn.exovert.generate.project.ProjectGenerator;
 import com.cyngn.exovert.generate.rest.RestGenerator;
 import com.cyngn.exovert.generate.server.ServerGenerator;
+import com.cyngn.exovert.generate.storage.AccessorGenerator;
 import com.cyngn.exovert.generate.storage.DalGenerator;
 import com.cyngn.exovert.util.MetaData;
 import com.cyngn.exovert.util.Udt;
@@ -13,6 +14,7 @@ import com.cyngn.vertx.async.Action;
 import com.cyngn.vertx.async.promise.Promise;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.mapping.annotations.Accessor;
 import com.englishtown.vertx.cassandra.impl.DefaultCassandraSession;
 import com.englishtown.vertx.cassandra.impl.JsonCassandraConfigurator;
 import io.vertx.core.Vertx;
@@ -88,6 +90,7 @@ public class CrudCreator {
         try {
             UDTGenerator.generate(ksm.getUserTypes());
             TableGenerator.generate(ksm.getTables());
+            AccessorGenerator.generate(ksm.getTables());
             DalGenerator.generate(ksm.getTables());
             if(optionSet.has(rest) || optionSet.has(server)) { RestGenerator.generate(ksm.getTables()); }
             if(optionSet.has(server)) { ServerGenerator.generate(ksm.getTables()); }

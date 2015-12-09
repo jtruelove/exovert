@@ -2,10 +2,12 @@ package com.cyngn.exovert.generate.rest;
 
 import com.cyngn.exovert.generate.entity.EntityGeneratorHelper;
 import com.cyngn.exovert.generate.server.rest.TypeMap;
+import com.cyngn.exovert.generate.storage.AccessorGenerator;
 import com.cyngn.exovert.util.Disk;
 import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;
 import com.cyngn.exovert.util.Udt;
+import com.cyngn.vertx.async.ResultContext;
 import com.cyngn.vertx.web.HttpHelper;
 import com.cyngn.vertx.web.JsonUtil;
 import com.cyngn.vertx.web.RestApi;
@@ -18,8 +20,11 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -30,9 +35,11 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Generates a REST interface for doing CRUD operations
@@ -70,6 +77,7 @@ public class RestGenerator {
             addSave(restBuilder, rawName);
             restBuilder.addMethod(getDelete(rawName));
             restBuilder.addMethod(getGet(rawName));
+            getGetAll(rawName, restBuilder, table);
             restBuilder.addMethod(getSupportedApi());
             restBuilder.addMethod(getQueryConverter(table));
 
@@ -83,6 +91,8 @@ public class RestGenerator {
             .addJavadoc(GeneratorHelper.getJavaDocHeader
                     ("Central place to put shared functions for REST call processing.", MetaData.instance.getUpdateTime()))
             .addMethod(getIsValidMethod());
+        utilBuilder.addMethod(generateGetAllProcessingMethod());
+        utilBuilder.addField(GeneratorHelper.getLogger(namespaceToUse, "RestUtil"));
         JavaFile javaFile = JavaFile.builder(namespaceToUse, utilBuilder.build()).build();
         Disk.outputFile(javaFile);
     }
@@ -110,15 +120,21 @@ public class RestGenerator {
     private static void addMemberVars(String rawClass, String dalName, TypeSpec.Builder builder) {
         String storageNamespace = MetaData.instance.getDalNamespace();
         String apiConstant = rawClass.toUpperCase() + "_API";
+        String apiConstantAll = rawClass.toUpperCase() + "_ALL_API";
 
         builder.addField(FieldSpec.builder(String.class, apiConstant, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                 .initializer("$S", MetaData.instance.getRestPrefix() + rawClass).build());
+
+        builder.addField(FieldSpec.builder(String.class, apiConstantAll, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .initializer("$S", MetaData.instance.getRestPrefix() + rawClass + "_all").build());
+
         builder.addField(ClassName.get(storageNamespace, dalName), "storage", Modifier.PRIVATE, Modifier.FINAL);
 
         CodeBlock block = CodeBlock.builder().beginControlFlow("")
                 .add("new RestApi.RestApiDescriptor($T.POST, $L, this::save),\n", HttpMethod.class, apiConstant)
                 .add("new RestApi.RestApiDescriptor($T.GET, $L, this::get),\n", HttpMethod.class, apiConstant)
-                .add("new RestApi.RestApiDescriptor($T.DELETE, $L, this::delete)\n", HttpMethod.class, apiConstant)
+                .add("new RestApi.RestApiDescriptor($T.DELETE, $L, this::delete),\n", HttpMethod.class, apiConstant)
+                .add("new RestApi.RestApiDescriptor($T.GET, $L, this::getAll)\n", HttpMethod.class, apiConstantAll)
                 .unindent().add("}")
                 .build();
 
@@ -154,7 +170,7 @@ public class RestGenerator {
 
         return MethodSpec.methodBuilder("save")
                 .addJavadoc(getJavaDoc("Save") +
-                    "\nNOTE: this method is left intentionally package protected to allow you to call it in a different way\n",
+                                "\nNOTE: this method is left intentionally package protected to allow you to call it in a different way\n",
                         clazz)
                 .addParameter(RoutingContext.class, "context", Modifier.FINAL)
                 .addParameter(Buffer.class, "body", Modifier.FINAL)
@@ -261,6 +277,104 @@ public class RestGenerator {
                 .build();
     }
 
+    private static void getGetAll(String entityName, TypeSpec.Builder restBuilder, TableMetadata table) {
+        ClassName clazz = ClassName.get(MetaData.instance.getTableNamespace(), entityName);
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("getAll")
+                .addJavadoc(getJavaDoc("GetAll - gets a list of"), clazz)
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
+                .addModifiers(Modifier.PUBLIC);
+
+        if(AccessorGenerator.isSingleValueKeyedTable(table)) {
+            builder.addCode("// there's only 1 key so we do a get all\n")
+                .addStatement("storage.getAll(result -> $T.processGetAllResult(context, result))",
+                        ClassName.get(MetaData.instance.getRestNamespace(), "RestUtil"));
+        } else {
+            List<List<ParameterSpec>> permutations = AccessorGenerator.getParametersForAccessors(table);
+
+            builder.addStatement("HttpServerRequest request = context.request()")
+                .addStatement("int paramCount = request.params().size()")
+                .beginControlFlow("\ntry")
+                .addCode("//the query must start at the partition key\n")
+                .beginControlFlow("switch(paramCount)");
+            TypeMap typeToConverters = TypeMap.create();
+            for (List<ParameterSpec> params : permutations) {
+                builder.addCode("//partial key: " + getKeyCommentString(params) + "\n")
+                    .addCode("case $L:\n", params.size());
+
+                builder.addCode("\tstorage.getAll(");
+                for(ParameterSpec param : params) {
+                    String columnName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, param.name);
+
+                    ColumnMetadata column = table.getColumn(columnName);
+
+                    if(column.getType().equals(DataType.text())) {
+                        builder.addCode("request.getParam($S), ", columnName);
+                    } else {
+                        String type;
+                        if (SimpleDateType.class.getTypeName().equals(column.getType().getCustomTypeClassName())) { type = "Date"; }
+                        else { type = column.getType().asJavaClass().getSimpleName(); }
+
+                        builder.addCode(typeToConverters.getTypeConverter(type,
+                                CodeBlock.builder().add("request.getParam($S)", columnName).build())).addCode(", ");
+                    }
+                }
+                builder.addStatement("result -> $T.processGetAllResult(context, result))",
+                        ClassName.get(MetaData.instance.getRestNamespace(), "RestUtil"));
+                builder.addStatement("\tbreak");
+            }
+
+            builder.addCode("default:\n")
+                .addStatement("\tString error = $S + context.request().uri()", "Invalid get all query: ")
+                .addStatement("\tlogger.error($S,  error)", "get_all - {}")
+                .addStatement("\t$T.processErrorResponse(error, context.response(), $T.BAD_REQUEST.code())",
+                        HttpHelper.class, HttpResponseStatus.class)
+                .addStatement("\tbreak")
+                .endControlFlow().nextControlFlow("catch (Exception ex)")
+                .addStatement("\tString error = $S + context.request().uri() + $S + ex.getMessage()", "error with query: ", " error: ")
+                .addStatement("\tlogger.error($S,  error, ex)", "get_all - {}")
+                .addStatement("\t$T.processErrorResponse(error, context.response(), $T.INTERNAL_SERVER_ERROR.code())",
+                        HttpHelper.class, HttpResponseStatus.class)
+                .endControlFlow();
+        }
+
+        restBuilder.addMethod(builder.build());
+    }
+
+    private static String getKeyCommentString(List<ParameterSpec> params) {
+        List<String> columns = params.stream().map(param -> param.name).collect(Collectors.toList());
+
+        return StringUtils.join(columns, ", ");
+    }
+
+    private static MethodSpec generateGetAllProcessingMethod() {
+        return MethodSpec.methodBuilder("processGetAllResult")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addTypeVariable(TypeVariableName.get("T"))
+                .addJavadoc("Handles processing a get all result\n")
+                .addParameter(RoutingContext.class, "context", Modifier.FINAL)
+                .addParameter(ParameterizedTypeName.get(ClassName.get(ResultContext.class), ParameterizedTypeName.get(ClassName.get(List.class), TypeVariableName.get("T"))), "result", Modifier.FINAL)
+                .beginControlFlow("if(result.succeeded)")
+                .beginControlFlow("if(result.value != null)")
+                .addStatement("$T.processResponse(result.value, context.response())", HttpHelper.class)
+                .nextControlFlow("else")
+                .addStatement("$T.processResponse(context.response(), $T.NOT_FOUND.code())", HttpHelper.class,
+                        HttpResponseStatus.class)
+                .endControlFlow()
+                .nextControlFlow("else if(result.error != null)")
+                .addStatement("String error = $S + context.request().uri() + $S + result.error.getMessage()", "Could not GET with query: ", " error: ")
+                .addStatement("logger.error($S,  error)", "get_all - {}")
+                .addStatement("$T.processErrorResponse(error, context.response(), $T.INTERNAL_SERVER_ERROR.code())",
+                        HttpHelper.class, HttpResponseStatus.class)
+                .nextControlFlow("else")
+                .addStatement("String error = $S + context.request().uri() + $S + result.error.getMessage()", "Could not GET with query: ", " error: ")
+                .addStatement("logger.error($S, error)", "get_all - {}")
+                .addStatement("$T.processErrorResponse(error, context.response(), $T.BAD_REQUEST.code())",
+                        HttpHelper.class, HttpResponseStatus.class)
+                .endControlFlow()
+                .build();
+    }
+
     private static String getJavaDoc(String action) {
         return action + " a {@link $L} object.\n";
     }
@@ -337,4 +451,6 @@ public class RestGenerator {
                .endControlFlow()
                .addStatement("return values").build();
     }
+
+
 }

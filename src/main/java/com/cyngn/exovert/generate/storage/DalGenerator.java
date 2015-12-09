@@ -5,24 +5,32 @@ import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;
 import com.cyngn.vertx.async.ResultContext;
 import com.datastax.driver.core.TableMetadata;
+import com.datastax.driver.mapping.MappingManager;
+import com.datastax.driver.mapping.Result;
 import com.englishtown.vertx.cassandra.CassandraSession;
+import com.englishtown.vertx.cassandra.FutureUtils;
 import com.englishtown.vertx.cassandra.mapping.VertxMapper;
 import com.englishtown.vertx.cassandra.mapping.VertxMappingManager;
 import com.englishtown.vertx.cassandra.mapping.impl.DefaultVertxMappingManager;
 import com.google.common.base.CaseFormat;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import io.vertx.core.Vertx;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -52,11 +60,14 @@ public class DalGenerator {
             dalBuilder.addField(GeneratorHelper.getLogger(namespaceToUse, name));
             addCassandraObjects(entityTable, dalBuilder);
             dalBuilder.addMethod(getConstructor(entityTable));
+            dalBuilder.addField(Vertx.class, "vertx", Modifier.FINAL);
 
             dalBuilder.addMethod(getSave(entityTable));
             dalBuilder.addMethod(getDelete(entityTable));
             dalBuilder.addMethod(getDeleteByKey(entityTable));
             dalBuilder.addMethod(getEntityGet(entityTable));
+            
+            addGetAllMethods(table, entityTable, dalBuilder);
 
             dalBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader("DAL for Cassandra entity - {@link " +
                     ClassName.get(MetaData.instance.getTableNamespace(), rawName) + "}", MetaData.instance.getUpdateTime()));
@@ -67,6 +78,92 @@ public class DalGenerator {
 
             Disk.outputFile(javaFile);
         }
+    }
+
+    private static void addGetAllMethods(TableMetadata table, ClassName entityTable, TypeSpec.Builder builder) {
+        ParameterizedTypeName callback = getOnCompleteWithListResult(entityTable);
+
+        // get all use case
+        if (AccessorGenerator.isSingleValueKeyedTable(table)) {
+            MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("getAll")
+                    .addModifiers(Modifier.PUBLIC);
+            methodBuilder.addParameter(callback, "onComplete", Modifier.FINAL);
+
+            addParamLogging("info", methodBuilder, new ArrayList<>());
+
+            methodBuilder.addStatement("$T future = accessor.getAll()", ParameterizedTypeName.get(ListenableFuture.class),
+                    ParameterizedTypeName.get(ClassName.get(Result.class), entityTable));
+
+            methodBuilder.addStatement("$T.addCallback(future, $L, vertx)", FutureUtils.class,
+                    getGetAllResultCallback(new ArrayList<>(), entityTable));
+            builder.addMethod(methodBuilder.build());
+        } else {
+            List<List<ParameterSpec>> permutations = AccessorGenerator.getParametersForAccessors(table);
+            for (List<ParameterSpec> params : permutations) {
+                MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("getAll")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addJavadoc("Get all matching {@link $L}(s) by sub key.\n", entityTable);
+                addParamLogging("info", methodBuilder, params);
+
+                // add method parameters
+                params.forEach(methodBuilder::addParameter);
+                methodBuilder.addParameter(callback, "onComplete", Modifier.FINAL);
+
+                methodBuilder.addCode("\n$T future = accessor.getAll(", ParameterizedTypeName.get(ClassName.get(ListenableFuture.class),
+                        ParameterizedTypeName.get(ClassName.get(Result.class), entityTable)));
+                boolean first = true;
+                for (ParameterSpec param : params) {
+                    if(first) {
+                        methodBuilder.addCode("$L", param.name);
+                        first = false;
+                    } else { methodBuilder.addCode(", $L", param.name); }
+                }
+                methodBuilder.addStatement(")");
+
+                methodBuilder.addStatement("$T.addCallback(future, $L, vertx)", FutureUtils.class,
+                        getGetAllResultCallback(params, entityTable));
+                builder.addMethod(methodBuilder.build());
+            }
+        }
+    }
+
+    private static void addParamLogging(String logLevel, MethodSpec.Builder builder, List<ParameterSpec> params) {
+        String logLevelLocal = logLevel.toLowerCase();
+        builder.addCode("logger." + logLevelLocal + "(\"getAll -");
+        for(ParameterSpec param : params) { builder.addCode(" " + param.name + ": {}"); }
+
+        if("error".equals(logLevelLocal)) { builder.addCode(" ex: \""); }
+        else { builder.addCode("\""); }
+
+        for(ParameterSpec param : params) { builder.addCode(", $L", param.name); }
+
+        if("error".equals(logLevelLocal)) { builder.addStatement(", $L)", "error"); }
+        else { builder.addStatement(")"); }
+    }
+
+    private static TypeSpec getGetAllResultCallback(List<ParameterSpec> params, ClassName entityTable) {
+        MethodSpec.Builder failureHandler = MethodSpec.methodBuilder("onFailure");
+
+        addParamLogging("error", failureHandler, params);
+        failureHandler.addStatement("$L.accept(new $T(error, $S))", "onComplete", ResultContext.class, "Failed to get all.");
+
+        // setup the callback
+        TypeSpec.Builder resultCallback = TypeSpec.anonymousClassBuilder("")
+                .addSuperinterface(ParameterizedTypeName.get(ClassName.get(FutureCallback.class),
+                        ParameterizedTypeName.get(ClassName.get(Result.class), entityTable)))
+                .addMethod(MethodSpec.methodBuilder("onSuccess")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(ParameterizedTypeName.get(ClassName.get(Result.class), entityTable), "result")
+                        .addStatement("$L.accept(new ResultContext(true, result.all()))", "onComplete")
+                        .build());
+
+        return resultCallback.addMethod(failureHandler
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(Throwable.class, "error")
+                .build())
+                .build();
     }
 
     /**
@@ -119,15 +216,24 @@ public class DalGenerator {
         TypeName [] types =  new TypeName [] {tableEntity};
         builder.addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(VertxMapper.class),  types),
                 "mapper", Modifier.FINAL).build());
+
+        builder.addField(ClassName.get(MetaData.instance.getDalNamespace(), tableEntity.simpleName() + "Accessor"),
+                "accessor", Modifier.FINAL);
     }
 
     private static MethodSpec getConstructor(ClassName tableEntity) {
+
+        ClassName accessorClass = ClassName.get(MetaData.instance.getDalNamespace(), tableEntity.simpleName() + "Accessor");
+
         return MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(CassandraSession.class, "session", Modifier.FINAL)
                 .addStatement("this.$N = $N", "session", "session")
                 .addStatement("$T manager = new $T(session)", VertxMappingManager.class, DefaultVertxMappingManager.class)
                 .addStatement("mapper = manager.mapper($T.class)", tableEntity)
+                .addStatement("$T accessorMappingManager = new $T(session.getSession())", MappingManager.class, MappingManager.class)
+                .addStatement("accessor = accessorMappingManager.createAccessor($T.class)", accessorClass)
+                .addStatement("vertx = session.getVertx()")
                 .build();
     }
 
@@ -259,5 +365,11 @@ public class DalGenerator {
     private static ParameterizedTypeName getOnCompleteWithResult(TypeName type) {
         return ParameterizedTypeName.get(ClassName.get(Consumer.class),
                 ParameterizedTypeName.get(ClassName.get(ResultContext.class), type));
+    }
+
+    private static ParameterizedTypeName getOnCompleteWithListResult(TypeName type) {
+        return ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                ParameterizedTypeName.get(ClassName.get(ResultContext.class),
+                        ParameterizedTypeName.get(ClassName.get(List.class), type)));
     }
 }

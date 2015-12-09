@@ -34,7 +34,7 @@ public class GradleTemplate {
             "}\n" +
             "\n" +
             "dependencies {\n" +
-            "    compile 'io.vertx:vertx-core:3.0.0'\n" +
+            "    compile 'io.vertx:vertx-core:3.1.0'\n" +
             "    compile \"joda-time:joda-time:2.4\"\n" +
             "    compile \"com.google.guava:guava:18.0\"\n" +
             "    compile \"commons-lang:commons-lang:2.6\"\n" +
@@ -50,7 +50,7 @@ public class GradleTemplate {
             "}\n" +
             "\n" +
             "task wrapper(type: Wrapper) {\n" +
-            "    gradleVersion = '2.0'\n" +
+            "    gradleVersion = '2.5'\n" +
             "}\n" +
             "\n" +
             "task release() << {}\n" +

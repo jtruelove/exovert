@@ -20,9 +20,11 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import org.apache.cassandra.db.marshal.SimpleDateType;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,10 +53,17 @@ public class EntityGeneratorHelper {
                     hasFrozenType = true;
                 }
             } else {
-                generics.add(ClassName.get(genericType.asJavaClass()).box());
+                generics.add(getType(genericType).box());
             }
         }
         return new TypeResult(ParameterizedTypeName.get(outer, generics.toArray(new TypeName[generics.size()])), hasFrozenType);
+    }
+
+    private static TypeName getType(DataType dType)
+    {
+        if (SimpleDateType.class.getTypeName().equals(dType.getCustomTypeClassName())) {
+            return ClassName.get(Date.class);
+        } else { return ClassName.get(dType.asJavaClass()); }
     }
 
     /**
@@ -73,7 +82,7 @@ public class EntityGeneratorHelper {
             if(Udt.instance.isUdt(type)) {
                 spec = MethodSpec.methodBuilder("set" + methodRoot).addParameter(MetaData.getClassNameForUdt((UserType) type), paramName);
             } else {
-                spec = MethodSpec.methodBuilder("set" + methodRoot).addParameter(type.asJavaClass(), paramName);
+                spec = MethodSpec.methodBuilder("set" + methodRoot).addParameter(getType(type), paramName);
             }
         } else {
             TypeResult result = getClassWithTypes(type);
@@ -100,7 +109,7 @@ public class EntityGeneratorHelper {
             if(Udt.instance.isUdt(type)) {
                 spec = MethodSpec.methodBuilder("get" + methodRoot).returns(MetaData.getClassNameForUdt((UserType) type));
             } else {
-                spec = MethodSpec.methodBuilder("get" + methodRoot).returns(type.asJavaClass());
+                spec = MethodSpec.methodBuilder("get" + methodRoot).returns(getType(type));
             }
         } else {
             TypeResult result = getClassWithTypes(type);
@@ -142,7 +151,7 @@ public class EntityGeneratorHelper {
             if(Udt.instance.isUdt(type)) {
                 spec = FieldSpec.builder(MetaData.getClassNameForUdt((UserType)type), fieldName, Modifier.PUBLIC);
             } else {
-                spec = FieldSpec.builder(type.asJavaClass(), fieldName, Modifier.PUBLIC);
+                spec = FieldSpec.builder(getType(type), fieldName, Modifier.PUBLIC);
             }
         } else {
             TypeResult result = getClassWithTypes(type);
@@ -150,7 +159,7 @@ public class EntityGeneratorHelper {
             spec = FieldSpec.builder(result.type, fieldName, Modifier.PUBLIC);
         }
 
-        if(hasFrozen) { spec.addAnnotation(getFrozenAnnotation(type)); }
+        if(hasFrozen) { spec.addAnnotation(getFrozenValueAnnotation()); }
         if (isUdtClass) { spec.addAnnotation(getFieldAnnotation(field)); }
         else { spec.addAnnotation(getColumnAnnotation(field)); }
         spec.addAnnotation(MetaData.getJsonAnnotation(field));
@@ -202,31 +211,6 @@ public class EntityGeneratorHelper {
      */
     public static AnnotationSpec getFrozenValueAnnotation() {
         return AnnotationSpec.builder(FrozenValue.class).build();
-    }
-
-    /**
-     * Get the Frozen("...") annotation for a field
-     * @param type
-     * @return
-     */
-    private static AnnotationSpec getFrozenAnnotation(DataType type) {
-        AnnotationSpec.Builder builder = AnnotationSpec.builder(Frozen.class);
-        DataType unfrozen = type;
-        if(type.isCollection() && type.isFrozen()) {
-            // top level collections don't need a wrapping frozen<...> as they can trip the datastax driver
-            if (type.getName().equals(DataType.Name.SET)) {
-                // type arguments always have one element for sets
-                unfrozen = DataType.set(type.getTypeArguments().get(0));
-            } else if (type.getName().equals(DataType.Name.LIST)) {
-                // type arguments always have one element for lists
-                unfrozen = DataType.list(type.getTypeArguments().get(0));
-            } else if (type.getName().equals(DataType.Name.MAP)) {
-                // type arguments always have two elements for maps
-                unfrozen = DataType.map(type.getTypeArguments().get(0), type.getTypeArguments().get(1));
-            }
-        }
-        builder.addMember("value", "$S", unfrozen);
-        return builder.build();
     }
 
     /**
