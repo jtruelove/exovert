@@ -485,7 +485,7 @@ public class ClassGenerator {
      *
      *    public static BeerType fromValue(final String value) throws IllegalArgumentException {
      *         for (BeerType enumValue : BeerType.values()) {
-     *             if (enumValue.value.equals(value)) {
+     *             if (enumValue.value.equalsIgnoreCase(value)) {
      *                 return enumValue;
      *             }
      *         }
@@ -537,7 +537,7 @@ public class ClassGenerator {
                 .returns(ClassName.get(namespace, enumTypeName))
                 .addParameter(String.class, "value", Modifier.FINAL)
                 .beginControlFlow("for ($1L enumValue : $1L.values())", enumTypeName)
-                .beginControlFlow("if (enumValue.value.equals(value))")
+                .beginControlFlow("if (enumValue.value.equalsIgnoreCase(value))")
                 .addStatement("return enumValue")
                 .endControlFlow()
                 .endControlFlow()
