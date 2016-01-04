@@ -226,9 +226,6 @@ public class ClassGenerator {
             if (jsonAnnotations) {
                 fieldSpecBuilder.addAnnotation(AnnotationSpec.builder(JsonProperty.class)
                         .addMember("value", "$S", field.name).build());
-                if (!field.required) {
-                    fieldSpecBuilder.addAnnotation(JsonIgnore.class);
-                }
             }
 
             // collect the field names for hash code and equals method
