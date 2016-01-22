@@ -62,9 +62,9 @@ class CommonRestGenerator {
                         TypeSpec typeSpec =
                                 classGenerator.getTypeSpecBuilder(
                                         namespace,
-                                        RestGeneratorHelper.getTypeName(classType.name, context.typeMap),
+                                        RestGeneratorHelper.getTypeName(classType.name),
                                         classType.fields, classType.immutable, classType.jsonAnnotations)
-                                        .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.documentation)).build();
+                                        .addJavadoc(GeneratorHelper.getJavaDocHeader(classType.description)).build();
 
                         generateClassFromTypespec(namespace, typeSpec);
                     }

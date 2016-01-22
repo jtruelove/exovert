@@ -82,7 +82,7 @@ public class ClassGenerator {
         TypeSpec.Builder apiBuilder = TypeSpec.classBuilder(RestGeneratorHelper.getApiName(api.name))
                 .addModifiers(Modifier.PUBLIC).addModifiers(Modifier.ABSTRACT);
 
-        apiBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader(api.documentation));
+        apiBuilder.addJavadoc(GeneratorHelper.getJavaDocHeader(api.description));
         apiBuilder.addField(GeneratorHelper.getLogger(RestGeneratorHelper.getApiNamespace(namespace), RestGeneratorHelper.getApiName(api.name)));
         apiBuilder.addSuperinterface(RestApi.class);
 
@@ -171,13 +171,17 @@ public class ClassGenerator {
 
         for (Field field : fields) {
             String fieldName = RestGeneratorHelper.getFieldName(field.name);
-            String fieldType = RestGeneratorHelper.getTypeName(field.type, context.typeMap);
-            TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(field.type, context.typeMap),
+            String fieldType = RestGeneratorHelper.getTypeName(field.type);
+            TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(field.type),
                     context.typeMap);
 
             // field spec
             FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(fieldTypeName, fieldName)
                         .addModifiers(Modifier.PRIVATE);
+
+            if (StringUtils.isNotEmpty(field.description)) {
+                fieldSpecBuilder.addJavadoc(field.description  + "\n");
+            }
 
             // check if both required and default is not set at same time
             if (field.required && field.defaultValue != null) {
@@ -222,9 +226,6 @@ public class ClassGenerator {
             if (jsonAnnotations) {
                 fieldSpecBuilder.addAnnotation(AnnotationSpec.builder(JsonProperty.class)
                         .addMember("value", "$S", field.name).build());
-                if (!field.required) {
-                    fieldSpecBuilder.addAnnotation(JsonIgnore.class);
-                }
             }
 
             // collect the field names for hash code and equals method
@@ -310,7 +311,7 @@ public class ClassGenerator {
 
         for (Field field : fields) {
             TypeName fieldTypeName = TypeParser.parse(RestGeneratorHelper.getTypeName(
-                    field.type, context.typeMap), context.typeMap);
+                    field.type), context.typeMap);
 
             String fieldName = RestGeneratorHelper.getFieldName(field.name);
 
@@ -362,7 +363,7 @@ public class ClassGenerator {
      *
      *     /** Validates request object
      *      *
-     *      * @return {@link ValidationResult}
+     *      * @return {@link com.cyngn.vertx.validation.ValidationResult}
      *      *\/
      *
      *     public ValidationResult validate() {
@@ -442,7 +443,7 @@ public class ClassGenerator {
 
         String apiConstant = api.name.toUpperCase() + Constants.API_PATH;
 
-        builder.addField(FieldSpec.builder(String.class, apiConstant, Modifier.PROTECTED, Modifier.STATIC, Modifier.FINAL)
+        builder.addField(FieldSpec.builder(String.class, apiConstant, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                 .initializer("$S", api.path).build());
 
         CodeBlock block = CodeBlock.builder().beginControlFlow("")
@@ -481,7 +482,7 @@ public class ClassGenerator {
      *
      *    public static BeerType fromValue(final String value) throws IllegalArgumentException {
      *         for (BeerType enumValue : BeerType.values()) {
-     *             if (enumValue.value.equals(value)) {
+     *             if (enumValue.value.equalsIgnoreCase(value)) {
      *                 return enumValue;
      *             }
      *         }
@@ -497,7 +498,7 @@ public class ClassGenerator {
         Preconditions.checkArgument(StringUtils.isNotEmpty(namespace), "package namespace cannot be empty or null");
         Preconditions.checkArgument(enumType != null, "enumType == null");
 
-        String enumTypeName = RestGeneratorHelper.getTypeName(enumType.name, context.typeMap);
+        String enumTypeName = RestGeneratorHelper.getTypeName(enumType.name);
 
         context.typeMap.registerType(enumTypeName,
                 ClassName.get(namespace, enumTypeName), true);
@@ -505,7 +506,7 @@ public class ClassGenerator {
         TypeSpec.Builder enumTypespecBuilder = TypeSpec
                 .enumBuilder(enumTypeName)
                 .addModifiers(Modifier.PUBLIC)
-                .addJavadoc(GeneratorHelper.getJavaDocHeader(enumType.documentation));
+                .addJavadoc(GeneratorHelper.getJavaDocHeader(enumType.description));
 
         enumTypespecBuilder.addField(String.class, "value", Modifier.PRIVATE, Modifier.FINAL);
 
@@ -533,7 +534,7 @@ public class ClassGenerator {
                 .returns(ClassName.get(namespace, enumTypeName))
                 .addParameter(String.class, "value", Modifier.FINAL)
                 .beginControlFlow("for ($1L enumValue : $1L.values())", enumTypeName)
-                .beginControlFlow("if (enumValue.value.equals(value))")
+                .beginControlFlow("if (enumValue.value.equalsIgnoreCase(value))")
                 .addStatement("return enumValue")
                 .endControlFlow()
                 .endControlFlow()

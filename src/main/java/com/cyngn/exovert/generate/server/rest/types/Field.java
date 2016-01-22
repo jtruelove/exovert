@@ -41,4 +41,10 @@ public class Field {
      */
     @JsonProperty
     public Validation validation;
+
+    /**
+     * Enum type description
+     */
+    @JsonProperty
+    public String description;
 }

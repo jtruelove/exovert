@@ -75,6 +75,12 @@ public class RestClientGenerator {
         serviceClientBuilder.addField(FieldSpec.builder(ServiceClient.class, Constants.SERVICE_CLIENT_FIELD_NAME,
                 Modifier.PROTECTED).build());
 
+        // add field for each apis
+        for (Api api : spec.apis) {
+            serviceClientBuilder.addField(FieldSpec.builder(String.class, RestGeneratorHelper.getApiConstantName(api.name),
+                    Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC).initializer("$S", api.name).build());
+        }
+
         // add constructor
         MethodSpec.Builder constructorSpec = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC);
@@ -91,7 +97,7 @@ public class RestClientGenerator {
                     RestGeneratorHelper.getCallApiMethodName(api.name));
 
             methodSpecBuilder.addModifiers(Modifier.PUBLIC);
-            methodSpecBuilder.addJavadoc(api.documentation + "\n");
+            methodSpecBuilder.addJavadoc(api.description + "\n");
 
             if (api.request != null) {
                 methodSpecBuilder.addParameter(ClassName.get(

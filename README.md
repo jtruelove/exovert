@@ -14,7 +14,7 @@ CrudGenerator Support
 
 * entity classes
 * DAL
-* CRUD REST interface
+* CRUD REST interface, including list APIs
 * Simple Server
 * metrics support (coming soon)
 * cache support (coming later)
@@ -39,7 +39,7 @@ Get the command line tool.
 <dependency>
     <groupId>com.cyngn.vertx</groupId>
     <artifactId>exovert</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 

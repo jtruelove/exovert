@@ -52,21 +52,61 @@ public class TypeParser {
 
     private static TypeName parseList(String type, TypeMap typeMap) {
         ClassName list = (ClassName) typeMap.getTypeName("List");
-        return ParameterizedTypeName.get(list,
-                typeMap.getTypeName(getListType(type)));
+
+        TypeName elementTypeName;
+        String elementType = getListType(type);
+
+        if (isCollection(elementType)) {
+            elementTypeName = parse(elementType, typeMap);
+        } else {
+            elementTypeName = typeMap.getTypeName(elementType);
+        }
+
+        return ParameterizedTypeName.get(list, elementTypeName);
     }
 
     private static TypeName parseSet(String type, TypeMap typeMap) {
         ClassName set = (ClassName) typeMap.getTypeName("Set");
-        return ParameterizedTypeName.get(set,
-                typeMap.getTypeName(RestGeneratorHelper.getTypeNameString(getSetType(type))));
+
+        TypeName elementTypeName;
+        String elementType = RestGeneratorHelper.getTypeNameString(getSetType(type));
+
+        if (isCollection(elementType)) {
+            elementTypeName = parse(elementType, typeMap);
+        } else {
+            elementTypeName = typeMap.getTypeName(elementType);
+        }
+
+        return ParameterizedTypeName.get(set, elementTypeName);
     }
 
     private static TypeName parseMap(String type, TypeMap typeMap) {
         ClassName map = (ClassName) typeMap.getTypeName("Map");
+
+        String keyType = getMapKeyType(type);
+        String valueType = getMapValueType(type);
+        TypeName keyTypeName;
+        TypeName valueTypeName;
+
+        if (isCollection(keyType)) {
+            keyTypeName = parse(keyType, typeMap);
+        } else {
+            keyTypeName = typeMap.getTypeName(keyType);
+        }
+
+        if (isCollection(valueType)) {
+            valueTypeName = parse(valueType, typeMap);
+        } else {
+            valueTypeName = typeMap.getTypeName(valueType);
+        }
+
         return ParameterizedTypeName.get(map,
-                typeMap.getTypeName(getMapKeyType(type)),
-                typeMap.getTypeName(getMapValueType(type)));
+                keyTypeName,
+                valueTypeName);
+    }
+
+    private static boolean isCollection(String type) {
+        return isList(type) || isSet(type) || isMap(type);
     }
 
     /**

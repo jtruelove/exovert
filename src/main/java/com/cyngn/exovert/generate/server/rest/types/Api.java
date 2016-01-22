@@ -16,10 +16,10 @@ public class Api {
     public String name;
 
     /**
-     * API documentation block
+     * API description
      */
     @JsonProperty
-    public String documentation;
+    public String description;
 
     /**
      * Routing path for the api

@@ -3,7 +3,6 @@ package com.cyngn.exovert.generate.server.rest.utils;
 import com.cyngn.exovert.generate.server.rest.DataTypeSpec;
 import com.cyngn.exovert.generate.server.rest.InterfaceSpec;
 import com.cyngn.exovert.generate.server.rest.RestServerGenerator;
-import com.cyngn.exovert.generate.server.rest.TypeMap;
 import com.cyngn.exovert.generate.server.rest.TypeParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
@@ -66,6 +65,10 @@ public class RestGeneratorHelper {
                 + Constants.API_NAME_SUFFIX;
     }
 
+    public static String getApiConstantName(String api) {
+        return api.toUpperCase().concat(Constants.API_NAME_CONSTANT_SUFFIX);
+    }
+
     public static String getRequestObjectName(String apiName) {
         return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, apiName + Constants.REQUEST_CLASS_SUFFIX);
     }
@@ -96,14 +99,14 @@ public class RestGeneratorHelper {
         return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, typeName.toLowerCase());
     }
 
-    public static String getTypeName(String name, TypeMap typeMap) {
+    public static String getTypeName(String name) {
         if (TypeParser.isList(name)) {
-            return String.format("List<%s>", getUpperCamelCaseFromSnakeCase(TypeParser.getListType(name)));
+            return String.format("List<%s>", getTypeName(TypeParser.getListType(name)));
         } else if (TypeParser.isSet(name)) {
-            return String.format("Set<%s>", getUpperCamelCaseFromSnakeCase(TypeParser.getSetType(name)));
+            return String.format("Set<%s>", getTypeName(TypeParser.getSetType(name)));
         } else if (TypeParser.isMap(name)){
-            return String.format("Map<%s,%s>", getUpperCamelCaseFromSnakeCase(TypeParser.getMapKeyType(name)),
-                    getUpperCamelCaseFromSnakeCase(TypeParser.getMapValueType(name)));
+            return String.format("Map<%s,%s>", getTypeName(TypeParser.getMapKeyType(name)),
+                    getTypeName(TypeParser.getMapValueType(name)));
         } else {
             return getUpperCamelCaseFromSnakeCase(name);
         }
