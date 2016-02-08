@@ -11,7 +11,7 @@ apply plugin: 'application'
 apply plugin: 'maven'
 
 
-version = '0.2.2'
+version = '3.2.1.0'
 group = "com.cyngn.vertx"
 archivesBaseName = "exovert"
 mainClassName = "com.cyngn.exovert.CrudCreator"
@@ -31,17 +31,17 @@ repositories {
 }
 
 dependencies {
-    compile 'io.vertx:vertx-core:3.1.0'
+    compile 'io.vertx:vertx-core:3.2.0'
     compile "joda-time:joda-time:2.4"
     compile "com.google.guava:guava:18.0"
     compile "commons-lang:commons-lang:2.6"
     compile "net.sf.jopt-simple:jopt-simple:4.9"
     compile "com.cyngn.vertx:vertx-util:0.5.8"
-    compile "com.englishtown.vertx:vertx-cassandra:3.0.0"
-    compile "com.englishtown.vertx:vertx-cassandra-mapping:3.0.0"
+    compile "com.englishtown.vertx:vertx-cassandra:3.2.0"
+    compile "com.englishtown.vertx:vertx-cassandra-mapping:3.2.0"
     compile "com.squareup:javapoet:1.2.0"
-    compile "io.vertx:vertx-codegen:3.0.0"
-    compile "org.apache.cassandra:cassandra-all:2.2.3"
+    compile "io.vertx:vertx-codegen:3.2.0"
+    compile "org.apache.cassandra:cassandra-all:3.2.1"
     testCompile "junit:junit:4.11"
     testCompile "io.vertx:vertx-unit:3.0.0"
 }

@@ -30,12 +30,10 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
-import org.apache.cassandra.db.marshal.SimpleDateType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -311,10 +309,7 @@ public class RestGenerator {
                     if(column.getType().equals(DataType.text())) {
                         builder.addCode("request.getParam($S), ", columnName);
                     } else {
-                        String type;
-                        if (SimpleDateType.class.getTypeName().equals(column.getType().getCustomTypeClassName())) { type = "Date"; }
-                        else { type = column.getType().asJavaClass().getSimpleName(); }
-
+                        String type = EntityGeneratorHelper.getRawType(column.getType()).simpleName();
                         builder.addCode(typeToConverters.getTypeConverter(type,
                                 CodeBlock.builder().add("request.getParam($S)", columnName).build())).addCode(", ");
                     }
@@ -433,10 +428,7 @@ public class RestGenerator {
                 throw new IllegalArgumentException("We don't currently support UDT primary keys in the query string, field: "
                         + column.getName());
             } else {
-                String type;
-                if (SimpleDateType.class.getTypeName().equals(column.getType().getCustomTypeClassName())) { type = "Date"; }
-                else { type = column.getType().asJavaClass().getSimpleName(); }
-
+                String type = EntityGeneratorHelper.getRawType(column.getType()).simpleName();
                 builder.addCode("values[$L] = ", i)
                        .addCode(typeToConverters.getTypeConverter(type,
                                 CodeBlock.builder().add("request.getParam($S)", column.getName()).build()))
@@ -451,6 +443,4 @@ public class RestGenerator {
                .endControlFlow()
                .addStatement("return values").build();
     }
-
-
 }

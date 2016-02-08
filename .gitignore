@@ -4,3 +4,4 @@
 *.ipr
 build
 tmp
+*.DS_Store

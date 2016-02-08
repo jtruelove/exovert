@@ -1,5 +1,6 @@
 package com.cyngn.exovert.generate.storage;
 
+import com.cyngn.exovert.generate.entity.EntityGeneratorHelper;
 import com.cyngn.exovert.util.Disk;
 import com.cyngn.exovert.util.GeneratorHelper;
 import com.cyngn.exovert.util.MetaData;
@@ -19,13 +20,11 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
-import org.apache.cassandra.db.marshal.SimpleDateType;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -155,13 +154,12 @@ public class AccessorGenerator {
         String name = column.getName();
         String paramName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name);
         ParameterSpec.Builder param;
-        if (SimpleDateType.class.getTypeName().equals(column.getType().getCustomTypeClassName())) {
-            param = ParameterSpec.builder(Date.class, paramName);
-        } else if (Udt.instance.isUdt(column.getType())) {
+
+        if (Udt.instance.isUdt(column.getType())) {
             throw new IllegalArgumentException("We don't currently support UDT primary keys in the query string, field: "
                     + column.getName());
         } else {
-            param = ParameterSpec.builder(column.getType().asJavaClass(), paramName);
+            param = ParameterSpec.builder(EntityGeneratorHelper.getRawType(column.getType()), paramName);
         }
 
         if(addAnnotation) {
