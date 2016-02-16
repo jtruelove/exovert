@@ -43,7 +43,7 @@ dependencies {
     compile "io.vertx:vertx-codegen:3.2.0"
     compile "org.apache.cassandra:cassandra-all:3.2.1"
     testCompile "junit:junit:4.11"
-    testCompile "io.vertx:vertx-unit:3.0.0"
+    testCompile "io.vertx:vertx-unit:3.2.0"
 }
 
 task wrapper(type: Wrapper) {
