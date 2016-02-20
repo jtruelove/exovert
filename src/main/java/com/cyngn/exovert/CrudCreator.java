@@ -110,7 +110,7 @@ public class CrudCreator {
         KeyspaceMetadata ksm = session.getCluster().getMetadata().getKeyspace(keySpace);
 
         Udt.instance.init(ksm);
-        MetaData.instance.init(nameSpace, keySpace, !isPreview ? outDir : null, restPrefix);
+        MetaData.instance.init(nameSpace, keySpace, !isPreview ? outDir : null, restPrefix, session);
         VertxRef.instance.init(vertx);
     }
 
@@ -129,8 +129,7 @@ public class CrudCreator {
 
         JsonCassandraConfigurator configurator = new JsonCassandraConfigurator(config);
         session = new DefaultCassandraSession(Cluster.builder(), configurator, vertx);
-
-        onComplete.accept(true);
+        session.onReady(result -> onComplete.accept(true));
     }
 
     /**

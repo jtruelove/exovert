@@ -9,18 +9,17 @@ import com.datastax.driver.core.UserType;
 import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.Field;
-import com.datastax.driver.mapping.annotations.Frozen;
 import com.datastax.driver.mapping.annotations.FrozenKey;
 import com.datastax.driver.mapping.annotations.FrozenValue;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.google.common.base.CaseFormat;
+import com.google.common.reflect.TypeToken;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import org.apache.cassandra.db.marshal.SimpleDateType;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -42,7 +41,7 @@ public class EntityGeneratorHelper {
      * @return the parameterized type result
      */
     public static TypeResult getClassWithTypes(DataType type) {
-        ClassName outer = ClassName.get(type.asJavaClass());
+        ClassName outer = getRawType(type);
 
         List<TypeName> generics = new ArrayList<>();
         boolean hasFrozenType = false;
@@ -53,17 +52,41 @@ public class EntityGeneratorHelper {
                     hasFrozenType = true;
                 }
             } else {
-                generics.add(getType(genericType).box());
+                generics.add(getRawType(genericType).box());
             }
         }
         return new TypeResult(ParameterizedTypeName.get(outer, generics.toArray(new TypeName[generics.size()])), hasFrozenType);
     }
 
-    private static TypeName getType(DataType dType)
-    {
-        if (SimpleDateType.class.getTypeName().equals(dType.getCustomTypeClassName())) {
-            return ClassName.get(Date.class);
-        } else { return ClassName.get(dType.asJavaClass()); }
+    /**
+     * Gets the custom type class name in string form if the DataType passed in is a Cassandra CustomType, i.e. UDT
+     *
+     * @param type the DataType to check
+     * @return the custom type class name or null if the DataType isn't a custom type
+     */
+    public static String getCustomTypeName(DataType type) {
+        String customTypeName = null;
+        if (type instanceof DataType.CustomType) {
+            customTypeName = ((DataType.CustomType) type).getCustomTypeClassName();
+        }
+
+        return customTypeName;
+    }
+
+    /**
+     * Get the raw java type of a Cassandra DataStax driver type
+     *
+     * @param type the column type off the java driver
+     * @return the java poet ClassName representation of a java type
+     */
+    public static ClassName getRawType(DataType type) {
+        TypeToken<?> typeToken = MetaData.instance.getCodecRegistry().codecFor(type).getJavaType();
+
+        ClassName className = ClassName.get(typeToken.getRawType());
+        // instead of Date LocalDate gets returned now by the new codec system
+        if("LocalDate".equals(className.simpleName())) { className = ClassName.get(Date.class); }
+
+        return className;
     }
 
     /**
@@ -82,7 +105,7 @@ public class EntityGeneratorHelper {
             if(Udt.instance.isUdt(type)) {
                 spec = MethodSpec.methodBuilder("set" + methodRoot).addParameter(MetaData.getClassNameForUdt((UserType) type), paramName);
             } else {
-                spec = MethodSpec.methodBuilder("set" + methodRoot).addParameter(getType(type), paramName);
+                spec = MethodSpec.methodBuilder("set" + methodRoot).addParameter(getRawType(type), paramName);
             }
         } else {
             TypeResult result = getClassWithTypes(type);
@@ -109,7 +132,7 @@ public class EntityGeneratorHelper {
             if(Udt.instance.isUdt(type)) {
                 spec = MethodSpec.methodBuilder("get" + methodRoot).returns(MetaData.getClassNameForUdt((UserType) type));
             } else {
-                spec = MethodSpec.methodBuilder("get" + methodRoot).returns(getType(type));
+                spec = MethodSpec.methodBuilder("get" + methodRoot).returns(getRawType(type));
             }
         } else {
             TypeResult result = getClassWithTypes(type);
@@ -151,7 +174,7 @@ public class EntityGeneratorHelper {
             if(Udt.instance.isUdt(type)) {
                 spec = FieldSpec.builder(MetaData.getClassNameForUdt((UserType)type), fieldName, Modifier.PUBLIC);
             } else {
-                spec = FieldSpec.builder(getType(type), fieldName, Modifier.PUBLIC);
+                spec = FieldSpec.builder(getRawType(type), fieldName, Modifier.PUBLIC);
             }
         } else {
             TypeResult result = getClassWithTypes(type);

@@ -24,26 +24,14 @@ public class RestGeneratorHelperTest {
 
     @Test
     public void testGetRequestObjectName() {
-        assertEquals("CreateBeerRequest", RestGeneratorHelper.getRequestObjectName("CreateBeer"));
-        assertEquals("CreateBeerRequest", RestGeneratorHelper.getRequestObjectName("createBeer"));
-
-        //TODO: fix this
-        //assertEquals("CreateBeerRequest", RestGeneratorHelper.getRequestObjectName("create_beer"));
-
-        // TODO: should i expect this
-        //assertEquals("CreateBeerRequest", RestGeneratorHelper.getRequestObjectName("CREATEBEER"));
+        assertEquals("CreateRequest", RestGeneratorHelper.getRequestObjectName("create"));
+        assertEquals("CreateBeerRequest", RestGeneratorHelper.getRequestObjectName("create_beer"));
     }
 
     @Test
     public void testGetRequestVariableName() {
-        assertEquals("createBeerRequest", RestGeneratorHelper.getRequestVariableName("CreateBeer"));
-        assertEquals("createBeerRequest", RestGeneratorHelper.getRequestVariableName("createBeer"));
-
-        //TODO: fix this
-        //assertEquals("CreateBeerRequest", RestGeneratorHelper.getRequestObjectName("create_beer"));
-
-        // TODO: should i expect this
-        //assertEquals("CreateBeerRequest", RestGeneratorHelper.getRequestObjectName("CREATEBEER"));
+        assertEquals("createRequest", RestGeneratorHelper.getRequestVariableName("create"));
+        assertEquals("createBeerRequest", RestGeneratorHelper.getRequestVariableName("create_beer"));
     }
 
     @Test

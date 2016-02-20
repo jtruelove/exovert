@@ -1,6 +1,8 @@
 package com.cyngn.exovert.util;
 
+import com.datastax.driver.core.CodecRegistry;
 import com.datastax.driver.core.UserType;
+import com.englishtown.vertx.cassandra.CassandraSession;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
@@ -25,12 +27,13 @@ public class MetaData {
     private String prefix;
 
     private static final String DEFAULT_API_PREFIX = "/api/v1/";
+    private CodecRegistry codecRegistry;
 
     private MetaData(){
         initialized = new AtomicBoolean(false);
     }
 
-    public synchronized void init(String namespace, String keyspace, String outDir, String restPrefix) {
+    public synchronized void init(String namespace, String keyspace, String outDir, String restPrefix, CassandraSession session) {
         if(initialized.compareAndSet(false, true)) {
             this.namespace = namespace;
             this.keyspace = keyspace;
@@ -39,6 +42,8 @@ public class MetaData {
 
             if (StringUtils.isNotEmpty(restPrefix)) { prefix = restPrefix + (restPrefix.endsWith("/") ? "" : "/");
             } else { prefix = DEFAULT_API_PREFIX; }
+
+            codecRegistry = session.getCluster().getConfiguration().getCodecRegistry();
         }
     }
 
@@ -51,6 +56,7 @@ public class MetaData {
     public String getRestNamespace() { return StringUtils.join(new String[]{namespace, "rest"}, '.'); }
     public String getRestPrefix() { return prefix; }
     public DateTime getUpdateTime() { return updateTime; }
+    public CodecRegistry getCodecRegistry() { return codecRegistry; }
 
     public static boolean isSnakeCase(String str) {
         return str.contains("_");

@@ -34,19 +34,19 @@ public class GradleTemplate {
             "}\n" +
             "\n" +
             "dependencies {\n" +
-            "    compile 'io.vertx:vertx-core:3.1.0'\n" +
+            "    compile 'io.vertx:vertx-core:3.2.0'\n" +
             "    compile \"joda-time:joda-time:2.4\"\n" +
             "    compile \"com.google.guava:guava:18.0\"\n" +
             "    compile \"commons-lang:commons-lang:2.6\"\n" +
             "    compile \"net.sf.jopt-simple:jopt-simple:4.9\"\n" +
             "    compile \"com.cyngn.vertx:vertx-util:0.5.4\"\n" +
-            "    compile \"com.englishtown.vertx:vertx-cassandra:3.0.0\"\n" +
-            "    compile \"com.englishtown.vertx:vertx-cassandra-mapping:3.0.0\"\n" +
+            "    compile \"com.englishtown.vertx:vertx-cassandra:3.2.0\"\n" +
+            "    compile \"com.englishtown.vertx:vertx-cassandra-mapping:3.2.0\"\n" +
             "    compile \"ch.qos.logback:logback-classic:1.0.13\"\n" +
             "    compile \"ch.qos.logback:logback-core:1.0.13\"\n" +
-            "    compile \"io.vertx:vertx-codegen:3.0.0\"\n" +
+            "    compile \"io.vertx:vertx-codegen:3.2.0\"\n" +
             "    testCompile \"junit:junit:4.11\"\n" +
-            "    testCompile \"io.vertx:vertx-unit:3.0.0\"\n" +
+            "    testCompile \"io.vertx:vertx-unit:3.2.0\"\n" +
             "}\n" +
             "\n" +
             "task wrapper(type: Wrapper) {\n" +
@@ -61,18 +61,13 @@ public class GradleTemplate {
             "    }\n" +
             "}\n" +
             "\n" +
-            "task javadocJar(type: Jar) {\n" +
-            "    classifier = 'javadoc'\n" +
-            "    from javadoc\n" +
-            "}\n" +
-            "\n" +
             "task sourcesJar(type: Jar) {\n" +
             "    classifier = 'sources'\n" +
             "    from sourceSets.main.allSource\n" +
             "}\n" +
             "\n" +
             "artifacts {\n" +
-            "    archives javadocJar, sourcesJar\n" +
+            "    archives sourcesJar\n" +
             "}\n" +
             "\n" +
             "shadowJar {\n" +

@@ -70,7 +70,7 @@ public class RestGeneratorHelper {
     }
 
     public static String getRequestObjectName(String apiName) {
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, apiName + Constants.REQUEST_CLASS_SUFFIX);
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, getUpperCamelCaseFromSnakeCase(apiName) + Constants.REQUEST_CLASS_SUFFIX);
     }
 
     public static String getRequestVariableName(String apiName) {
@@ -78,7 +78,7 @@ public class RestGeneratorHelper {
     }
 
     public static String getResponseObjectName(String apiName) {
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, apiName + Constants.RESPONSE_CLASS_SUFFIX);
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, getUpperCamelCaseFromSnakeCase(apiName) + Constants.RESPONSE_CLASS_SUFFIX);
     }
 
     public static String getSetMethodName(String fieldName) {
